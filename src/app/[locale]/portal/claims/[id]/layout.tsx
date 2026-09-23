@@ -1,7 +1,7 @@
 "use client";
 
 import NotFoundPanel from "@/components/common/NotFoundPanel";
-import StatusBadge from "@/components/claims/StatusBadge";
+import ClientStatusPill from "@/components/claims/ClientStatusPill";
 import Tabs from "@/components/ui/tabs/Tabs";
 import { Link, usePathname } from "@/i18n/navigation";
 import { AlertIcon, ChevronLeftIcon } from "@/icons";
@@ -45,26 +45,23 @@ export default function ClientClaimDetailLayout({ children }: { children: React.
         <ChevronLeftIcon className="size-4 rtl:rotate-180" /> My Claims
       </Link>
 
-      <div className="mb-5 rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/3">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-theme-lg font-semibold text-gray-800 dark:text-white/90">{claim.reference}</h1>
-              {claim.lateReported && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-warning-50 px-2 py-0.5 text-theme-xs font-medium text-warning-600 dark:bg-warning-500/15 dark:text-warning-400">
-                  <AlertIcon className="size-3" /> Late Reported
-                </span>
-              )}
-            </div>
-            <p className="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">
-              {claim.claimType} · {section?.insurer} · Loss on {formatDate(claim.dateOfLoss)}
-            </p>
+      <div className="mb-6 rounded-xl border border-gray-200 bg-white shadow-card dark:border-gray-800 dark:bg-gray-900">
+        <div className="px-5 pt-5">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="text-title-sm font-semibold tracking-tight text-gray-900 dark:text-white">{claim.reference}</h1>
+            <ClientStatusPill status={claim.status} />
+            {claim.lateReported && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-warning-50 px-2 py-0.5 text-theme-xs font-medium text-warning-700 ring-1 ring-warning-600/20 ring-inset dark:bg-warning-500/15 dark:text-warning-300">
+                <AlertIcon className="size-3" /> Late reported
+              </span>
+            )}
           </div>
-          <StatusBadge status={claim.status} />
+          <p className="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">
+            {claim.claimType} · {section?.insurer} · Loss on {formatDate(claim.dateOfLoss)}
+          </p>
         </div>
+        <Tabs tabs={tabs} active={active} className="mt-4 border-t border-b-0 border-gray-100 px-5 dark:border-gray-800" />
       </div>
-
-      <Tabs tabs={tabs} active={active} className="mb-6" />
 
       {children}
     </div>

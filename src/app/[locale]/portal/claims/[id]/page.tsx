@@ -1,9 +1,11 @@
 "use client";
 
+import ClientStageTracker from "@/components/claims/ClientStageTracker";
 import ComponentCard from "@/components/common/ComponentCard";
 import Alert from "@/components/ui/alert/Alert";
 import { Link } from "@/i18n/navigation";
 import { auditFor, checklistFor, clientAttentionFor, documentsFor, formatDateTime } from "@/lib/mock/helpers";
+import { clientStageNote } from "@/lib/mock/clientStatus";
 import { useData } from "@/lib/mock/store";
 import { useClaimAccess } from "@/lib/mock/useClaimAccess";
 import { useParams } from "next/navigation";
@@ -22,6 +24,10 @@ export default function ClientClaimStatusPage() {
 
   return (
     <div className="space-y-6">
+      <ComponentCard title="Progress">
+        <ClientStageTracker status={claim.status} blocking={clientStageNote(state, claim).blocking} />
+        <p className="mt-5 text-theme-sm text-gray-600 dark:text-gray-300">{clientStageNote(state, claim).text}</p>
+      </ComponentCard>
       {claim.lateReported && (
         <Alert
           variant="warning"

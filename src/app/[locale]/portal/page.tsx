@@ -4,37 +4,57 @@ import ClientClaimCard from "@/components/claims/ClientClaimCard";
 import Button from "@/components/ui/button/Button";
 import { useAuth } from "@/context/AuthContext";
 import { Link } from "@/i18n/navigation";
-import { AlertIcon, CheckCircleIcon, PlusIcon } from "@/icons";
-import { clientAttentionFor } from "@/lib/mock/helpers";
+import { PlusIcon } from "@/icons";
+import { clientStageNote, clientStageOf } from "@/lib/mock/clientStatus";
+import { findClient } from "@/lib/mock/helpers";
 import { useData, useScopedClaims } from "@/lib/mock/store";
+import type { Claim, MockState } from "@/lib/mock/types";
+import { useState } from "react";
 
-// Client Portal dashboard — ux-blueprint.md §13.5: reminder banner at the top (the
-// prototype's only surface for the background Notifications engine, per §1.6), then
-// the org's claims list as cards. No count tiles, no filters, no portfolio framing —
-// a client org's claim volume is low enough that a plain list is the entire dashboard.
+// The claim the client most needs to act on — opened by default so the full stage view
+// is visible on arrival. Outstanding documents win; then any other claim waiting on the
+// client; otherwise nothing is expanded.
+function mostActionableClaim(state: MockState, claims: Claim[]): Claim | undefined {
+  const blocking = claims.filter((c) => clientStageNote(state, c).blocking);
+  return blocking.find((c) => clientStageOf(c.status) === "documents_outstanding") ?? blocking[0];
+}
+
+// User Portal home — UC-03 Track Claim Status. The org's claims, most recently lodged
+// first, each showing the client-facing status the Broker last set. Only claims linked
+// to the signed-in user's own organisation are ever listed (useScopedClaims).
 export default function ClientDashboardPage() {
   const { currentUser } = useAuth();
   const { state } = useData();
   const claims = useScopedClaims(currentUser?.role ?? "client_primary", currentUser?.id ?? "", currentUser?.clientId);
+  // null until the user toggles a card — until then the most actionable claim stays open.
+  const [expanded, setExpanded] = useState<Set<string> | null>(null);
 
   if (!currentUser) return null;
 
-  const attentionClaims = claims
-    .map((claim) => ({ claim, attention: clientAttentionFor(claim, state.documents) }))
-    .filter((x): x is { claim: (typeof claims)[number]; attention: string } => !!x.attention);
+  const org = findClient(state, currentUser.clientId);
+  const sorted = [...claims].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const defaultOpen = mostActionableClaim(state, sorted);
+  const openIds = expanded ?? new Set(defaultOpen ? [defaultOpen.id] : []);
 
-  const sorted = [...claims].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  const toggle = (id: string) => {
+    const next = new Set(openIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setExpanded(next);
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-title-sm font-semibold text-gray-800 dark:text-white/90">My Claims</h1>
-          <p className="text-theme-sm text-gray-500 dark:text-gray-400">{currentUser.name}</p>
+          <h1 className="text-title-sm font-semibold tracking-tight text-gray-900 dark:text-white/90">My Claims</h1>
+          <p className="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">
+            {org?.name} · {claims.length} {claims.length === 1 ? "claim" : "claims"} on file
+          </p>
         </div>
         <Link href="/portal/claims/new">
           <Button size="sm" startIcon={<PlusIcon className="size-4" />}>
-            New Claim
+            Lodge a Claim
           </Button>
         </Link>
       </div>
@@ -43,42 +63,26 @@ export default function ClientDashboardPage() {
         <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-center dark:border-gray-700 dark:bg-white/3">
           <p className="text-theme-sm font-medium text-gray-700 dark:text-gray-300">No claims yet</p>
           <p className="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">
-            When you need to report a loss, submitting your first claim only takes a few minutes.
+            When you need to report a loss, lodging your first claim only takes a few minutes.
           </p>
           <Link href="/portal/claims/new" className="mt-4 inline-block">
-            <Button size="sm">Submit your first claim</Button>
+            <Button size="sm">Lodge your first claim</Button>
           </Link>
         </div>
-      ) : attentionClaims.length > 0 ? (
-        <div className="rounded-2xl border border-warning-200 bg-warning-50 p-4 dark:border-warning-500/30 dark:bg-warning-500/10">
-          <div className="flex items-start gap-3">
-            <AlertIcon className="mt-0.5 size-5 shrink-0 text-warning-500" />
-            <div className="space-y-2">
-              <p className="text-theme-sm font-semibold text-warning-700 dark:text-warning-400">Needs your attention</p>
-              <ul className="space-y-1.5">
-                {attentionClaims.map(({ claim, attention }) => (
-                  <li key={claim.id}>
-                    <Link href={`/portal/claims/${claim.id}`} className="text-theme-sm text-warning-700 underline hover:no-underline dark:text-warning-300">
-                      {claim.reference}: {attention}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
       ) : (
-        <div className="flex items-center gap-3 rounded-2xl border border-success-200 bg-success-50 p-4 dark:border-success-500/30 dark:bg-success-500/10">
-          <CheckCircleIcon className="size-5 shrink-0 text-success-500" />
-          <p className="text-theme-sm font-medium text-success-700 dark:text-success-400">Nothing needs your attention right now.</p>
+        <div className="space-y-3">
+          {sorted.map((claim) => (
+            <ClientClaimCard key={claim.id} claim={claim} expanded={openIds.has(claim.id)} onToggle={() => toggle(claim.id)} />
+          ))}
         </div>
       )}
 
-      <div className="space-y-3">
-        {sorted.map((claim) => (
-          <ClientClaimCard key={claim.id} claim={claim} documents={state.documents} />
-        ))}
-      </div>
+      <p className="text-center text-theme-xs text-gray-400 dark:text-gray-500">
+        Statuses are updated by your broker as your claim progresses.{" "}
+        <Link href="/portal/contact" className="font-medium text-gray-600 underline underline-offset-2 hover:text-gray-800 dark:text-gray-300">
+          Questions? Contact your broker
+        </Link>
+      </p>
     </div>
   );
 }

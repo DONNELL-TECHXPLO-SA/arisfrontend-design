@@ -11,9 +11,9 @@ import React from "react";
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   return (
     <RequireAuth portal="client">
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
         <ClientTopNav />
-        <main className="mx-auto max-w-(--breakpoint-md) px-4 pt-6 pb-24 md:pb-10">{children}</main>
+        <main className="w-full px-4 pt-8 pb-24 md:px-6 md:pb-10 lg:px-10">{children}</main>
         <ClientBottomNav />
       </div>
     </RequireAuth>

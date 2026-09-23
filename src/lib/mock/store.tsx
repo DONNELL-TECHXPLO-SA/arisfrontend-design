@@ -29,7 +29,7 @@ import type {
 
 // Bump the version suffix whenever the persisted shape changes (e.g. ClaimStatus
 // enum values) — an old cached blob wouldn't match STATUS_META and would crash on read.
-const STORAGE_KEY = "aris-claims-mock-state-v2";
+const STORAGE_KEY = "aris-claims-mock-state-v3";
 const LATE_REPORT_DAYS = 30;
 
 function uid(prefix: string): string {

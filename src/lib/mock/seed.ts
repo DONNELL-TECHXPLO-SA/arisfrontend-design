@@ -13,6 +13,7 @@ import type {
   ReportRecord,
   User,
 } from "./types";
+import { DEFAULT_CLIENT_STAGE_LABELS } from "./clientStatus";
 
 // Anchor date for all relative seed timestamps — keeps demo data looking "current"
 // regardless of when the prototype is actually opened.
@@ -49,6 +50,8 @@ const brokers: User[] = [
 ];
 
 const clientContacts: User[] = [
+  { id: "u-cp-kopano", name: "Nomsa Mahlangu", email: "nomsa.mahlangu@kopano-infra.gov.za", role: "client_primary", clientId: "c-kopano", active: true },
+  { id: "u-cs-kopano", name: "Tebogo Molefe", email: "tebogo.molefe@kopano-infra.gov.za", role: "client_secondary", clientId: "c-kopano", active: true },
   { id: "u-cp-metro", name: "Lindiwe Dube", email: "lindiwe@metrofacilities.co.za", role: "client_primary", clientId: "c-metro", active: true },
   { id: "u-cs-metro", name: "Johan Smit", email: "johan@metrofacilities.co.za", role: "client_secondary", clientId: "c-metro", active: true },
   { id: "u-cp-coastal", name: "Ruvimbo Chikafu", email: "ruvimbo@coastallogistics.co.za", role: "client_primary", clientId: "c-coastal", active: true },
@@ -63,6 +66,7 @@ export const SEED_USERS: User[] = [administrator, manager, ...brokers, ...client
 // ---- Clients -----------------------------------------------------------------
 
 export const SEED_CLIENTS: ClientOrg[] = [
+  { id: "c-kopano", name: "Kopano Infrastructure Agency SOC Ltd", regNo: "2004/019876/30", address: "Kopano House, 120 Madiba Street, Pretoria, 0002", brokerId: "u-broker-thabo", primaryContactId: "u-cp-kopano", secondaryContactId: "u-cs-kopano", createdAt: daysAgo(600) },
   { id: "c-metro", name: "Metro Facilities Group", regNo: "2011/044213/07", address: "14 Century Boulevard, Century City, Cape Town, 7441", brokerId: "u-broker-thabo", primaryContactId: "u-cp-metro", secondaryContactId: "u-cs-metro", createdAt: daysAgo(400) },
   { id: "c-coastal", name: "Coastal Logistics (Pty) Ltd", regNo: "2015/198822/07", address: "8 Bayside Drive, Durban Harbour, Durban, 4001", brokerId: "u-broker-thabo", primaryContactId: "u-cp-coastal", createdAt: daysAgo(360) },
   { id: "c-horizon", name: "Horizon Retail Holdings", regNo: "2009/071455/06", address: "220 Rivonia Road, Sandton, Johannesburg, 2196", brokerId: "u-broker-aisha", primaryContactId: "u-cp-horizon", secondaryContactId: "u-cs-horizon", createdAt: daysAgo(500) },
@@ -74,6 +78,18 @@ export const SEED_CLIENTS: ClientOrg[] = [
 // claimFormSlug values must match ClaimFormFiller/forms/<slug> exactly (src/data/claim-forms).
 
 export const SEED_POLICIES: Policy[] = [
+  {
+    id: "p-kopano-1",
+    clientId: "c-kopano",
+    policyNumber: "AB-KIA-0003",
+    periodStart: daysAgo(200),
+    periodEnd: daysAgo(-165),
+    sections: [
+      { id: "s-kopano-motor", policyId: "p-kopano-1", name: "Motor Fleet", insurer: "Old Mutual", claimFormSlug: "old-mutual-motor-accident-claim", excess: 5000, requiresAsset: true },
+      { id: "s-kopano-property", policyId: "p-kopano-1", name: "Property", insurer: "Charter Risk", claimFormSlug: "charter-risk-property-loss-damage-claim", excess: 25000, requiresAsset: false },
+      { id: "s-kopano-liability", policyId: "p-kopano-1", name: "Public Liability", insurer: "Old Mutual", claimFormSlug: "old-mutual-public-liability-accident-report", excess: 10000, requiresAsset: false },
+    ],
+  },
   {
     id: "p-metro-1",
     clientId: "c-metro",
@@ -131,6 +147,9 @@ export const SEED_POLICIES: Policy[] = [
 ];
 
 export const SEED_ASSETS: Asset[] = [
+  { id: "a-kopano-1", sectionId: "s-kopano-motor", description: "Toyota Land Cruiser 79 — GP 882-104" },
+  { id: "a-kopano-2", sectionId: "s-kopano-motor", description: "Nissan NP200 — GP 310-557" },
+  { id: "a-kopano-3", sectionId: "s-kopano-motor", description: "Isuzu FTR 850 tipper truck — GP 774-219" },
   { id: "a-metro-1", sectionId: "s-metro-motor", description: "Toyota Hilux 2.8GD-6 — CA 123-456" },
   { id: "a-metro-2", sectionId: "s-metro-motor", description: "Isuzu D-Max 3.0 — CA 654-321" },
   { id: "a-horizon-1", sectionId: "s-horizon-motor", description: "VW Crafter Panel Van — GP 445-987" },
@@ -142,7 +161,7 @@ export const SEED_ASSETS: Asset[] = [
 // Deliberately spread across every ClaimStatus and all three decision outcomes so
 // every screen (dashboards, lists, detail tabs, reports) has representative data.
 
-export const SEED_CLAIMS: Claim[] = [
+const BASE_CLAIMS: Claim[] = [
   {
     id: "cl-1001",
     reference: "ARB-2026-1001",
@@ -396,6 +415,134 @@ export const SEED_CLAIMS: Claim[] = [
   },
 ];
 
+
+// SOE client (c-kopano) — six claims covering every client-facing stage, so the User
+// Portal's My Claims list (UC-03) has a full spread to show.
+const KOPANO_CLAIMS: Claim[] = [
+  {
+    id: "cl-1018",
+    reference: "ARB-2026-1018",
+    clientId: "c-kopano",
+    policyId: "p-kopano-1",
+    sectionId: "s-kopano-motor",
+    assetId: "a-kopano-2",
+    claimType: "Motor Accident",
+    dateOfLoss: daysAgo(2),
+    location: "Church Street, Pretoria CBD",
+    narrative: "Pool vehicle reversed into a bollard in the depot yard; rear bumper and tailgate damaged.",
+    lodgementChannel: "self_service",
+    lodgedById: "u-cp-kopano",
+    brokerId: "u-broker-thabo",
+    status: "submitted",
+    lateReported: false,
+    createdAt: daysAgo(1),
+    updatedAt: daysAgo(1),
+  },
+  {
+    id: "cl-1017",
+    reference: "ARB-2026-1017",
+    clientId: "c-kopano",
+    policyId: "p-kopano-1",
+    sectionId: "s-kopano-property",
+    claimType: "Storm damage",
+    dateOfLoss: daysAgo(5),
+    location: "Pump Station 4, Olifantsfontein",
+    narrative: "Hailstorm broke the control-room skylights; rainwater damaged the switchgear panel.",
+    lodgementChannel: "self_service",
+    lodgedById: "u-cp-kopano",
+    brokerId: "u-broker-thabo",
+    status: "documents_outstanding",
+    lateReported: false,
+    createdAt: daysAgo(4),
+    updatedAt: daysAgo(2),
+  },
+  {
+    id: "cl-1016",
+    reference: "ARB-2026-1016",
+    clientId: "c-kopano",
+    policyId: "p-kopano-1",
+    sectionId: "s-kopano-liability",
+    claimType: "Public Liability",
+    dateOfLoss: daysAgo(14),
+    location: "Pipeline servitude, Midrand",
+    narrative: "Member of the public tripped over an unmarked maintenance cover; minor injury claimed.",
+    lodgementChannel: "broker_assisted",
+    lodgedById: "u-broker-thabo",
+    brokerId: "u-broker-thabo",
+    status: "submitted_to_insurer",
+    lateReported: false,
+    insurerClaimNo: "OM-PL-71904",
+    createdAt: daysAgo(12),
+    updatedAt: daysAgo(8),
+  },
+  {
+    id: "cl-1015",
+    reference: "ARB-2026-1015",
+    clientId: "c-kopano",
+    policyId: "p-kopano-1",
+    sectionId: "s-kopano-motor",
+    assetId: "a-kopano-1",
+    claimType: "Motor Accident",
+    dateOfLoss: daysAgo(21),
+    location: "R101, near Hammanskraal",
+    narrative: "Vehicle struck a pothole at speed during a site inspection; front suspension and wheel damaged.",
+    lodgementChannel: "self_service",
+    lodgedById: "u-cs-kopano",
+    brokerId: "u-broker-thabo",
+    status: "under_assessment",
+    lateReported: false,
+    insurerClaimNo: "OM-MC-60477",
+    assessor: { name: "Chris Oosthuizen", company: "Independent Assessors SA", contact: "082 445 1290" },
+    createdAt: daysAgo(20),
+    updatedAt: daysAgo(6),
+  },
+  {
+    id: "cl-1014",
+    reference: "ARB-2026-1014",
+    clientId: "c-kopano",
+    policyId: "p-kopano-1",
+    sectionId: "s-kopano-property",
+    claimType: "Theft",
+    dateOfLoss: daysAgo(47),
+    location: "Reservoir site, Centurion",
+    narrative: "Copper earthing cable and a standby generator were stolen after the perimeter fence was cut.",
+    lodgementChannel: "broker_assisted",
+    lodgedById: "u-broker-thabo",
+    brokerId: "u-broker-thabo",
+    status: "awaiting_insurer_payment",
+    lateReported: false,
+    insurerClaimNo: "CR-PL-33810",
+    decision: { outcome: "settled", settlementMethod: "cash", decidedAt: daysAgo(9), decidedById: "u-broker-thabo" },
+    grossAmount: 186500,
+    createdAt: daysAgo(45),
+    updatedAt: daysAgo(5),
+  },
+  {
+    id: "cl-1013",
+    reference: "ARB-2026-1013",
+    clientId: "c-kopano",
+    policyId: "p-kopano-1",
+    sectionId: "s-kopano-motor",
+    assetId: "a-kopano-3",
+    claimType: "Windscreen",
+    dateOfLoss: daysAgo(122),
+    location: "N4 Eastbound, Bronkhorstspruit",
+    narrative: "Stone chip from an oncoming truck cracked the windscreen across the driver's line of sight.",
+    lodgementChannel: "self_service",
+    lodgedById: "u-cp-kopano",
+    brokerId: "u-broker-thabo",
+    status: "closed",
+    lateReported: false,
+    insurerClaimNo: "OM-GL-20931",
+    decision: { outcome: "settled", settlementMethod: "replacement", decidedAt: daysAgo(110), decidedById: "u-broker-thabo" },
+    grossAmount: 14200,
+    createdAt: daysAgo(120),
+    updatedAt: daysAgo(98),
+  },
+];
+
+export const SEED_CLAIMS: Claim[] = [...BASE_CLAIMS, ...KOPANO_CLAIMS];
+
 // ---- Checklist items -----------------------------------------------------------
 
 function checklist(claimId: string, items: { label: string; status: "outstanding" | "received"; documentId?: string }[]): ChecklistItem[] {
@@ -462,6 +609,33 @@ export const SEED_CHECKLIST_ITEMS: ChecklistItem[] = [
     { label: "Completed claim form", status: "received", documentId: "doc-1012-form" },
     { label: "Photographs of damage", status: "received", documentId: "doc-1012-photos" },
   ]),
+  ...checklist("cl-1018", [
+    { label: "Completed claim form", status: "received", documentId: "doc-1018-form" },
+    { label: "Photographs of damage", status: "received", documentId: "doc-1018-photos" },
+  ]),
+  ...checklist("cl-1017", [
+    { label: "Completed claim form", status: "received", documentId: "doc-1017-form" },
+    { label: "Repair quotation", status: "outstanding" },
+    { label: "Photos of damage", status: "outstanding" },
+  ]),
+  ...checklist("cl-1016", [
+    { label: "Completed accident report", status: "received", documentId: "doc-1016-form" },
+    { label: "Claimant's letter of demand", status: "received", documentId: "doc-1016-demand" },
+  ]),
+  ...checklist("cl-1015", [
+    { label: "Completed claim form", status: "received", documentId: "doc-1015-form" },
+    { label: "Photographs of damage", status: "received", documentId: "doc-1015-photos" },
+    { label: "Driver's licence copy", status: "received", documentId: "doc-1015-licence" },
+  ]),
+  ...checklist("cl-1014", [
+    { label: "Completed claim form", status: "received", documentId: "doc-1014-form" },
+    { label: "SAPS case number", status: "received", documentId: "doc-1014-saps" },
+    { label: "Proof of ownership", status: "received", documentId: "doc-1014-ownership" },
+  ]),
+  ...checklist("cl-1013", [
+    { label: "Completed claim form", status: "received", documentId: "doc-1013-form" },
+    { label: "Photographs of damage", status: "received", documentId: "doc-1013-photos" },
+  ]),
 ];
 
 // ---- Documents -------------------------------------------------------------
@@ -498,6 +672,19 @@ export const SEED_DOCUMENTS: ClaimDocument[] = [
   { id: "doc-1011-unsigned-aol", claimId: "cl-1011", type: "unsigned_aol", filename: "aol-unsigned-ARB-2026-1011.pdf", uploadedById: "u-broker-werner", uploadedAt: daysAgo(18) },
   { id: "doc-1012-form", claimId: "cl-1012", type: "claim_form", filename: "bryte-motor-claim-horizon-2.pdf", uploadedById: "u-cp-horizon", uploadedAt: daysAgo(15) },
   { id: "doc-1012-photos", claimId: "cl-1012", type: "photo", filename: "parking-scrape.jpg", uploadedById: "u-cp-horizon", uploadedAt: daysAgo(15) },
+  { id: "doc-1018-form", claimId: "cl-1018", type: "claim_form", filename: "old-mutual-motor-accident-claim-kopano.pdf", uploadedById: "u-cp-kopano", uploadedAt: daysAgo(1) },
+  { id: "doc-1018-photos", claimId: "cl-1018", type: "photo", filename: "np200-rear-damage.jpg", uploadedById: "u-cp-kopano", uploadedAt: daysAgo(1) },
+  { id: "doc-1017-form", claimId: "cl-1017", type: "claim_form", filename: "charter-risk-property-claim-pump-station-4.pdf", uploadedById: "u-cp-kopano", uploadedAt: daysAgo(4) },
+  { id: "doc-1016-form", claimId: "cl-1016", type: "incident_report", filename: "public-liability-accident-report-midrand.pdf", uploadedById: "u-broker-thabo", uploadedAt: daysAgo(12) },
+  { id: "doc-1016-demand", claimId: "cl-1016", type: "other", filename: "claimant-letter-of-demand.pdf", uploadedById: "u-cp-kopano", uploadedAt: daysAgo(11) },
+  { id: "doc-1015-form", claimId: "cl-1015", type: "claim_form", filename: "old-mutual-motor-accident-claim-land-cruiser.pdf", uploadedById: "u-cs-kopano", uploadedAt: daysAgo(20) },
+  { id: "doc-1015-photos", claimId: "cl-1015", type: "photo", filename: "land-cruiser-suspension.jpg", uploadedById: "u-cs-kopano", uploadedAt: daysAgo(20) },
+  { id: "doc-1015-licence", claimId: "cl-1015", type: "other", filename: "driver-licence-tmolefe.pdf", uploadedById: "u-cs-kopano", uploadedAt: daysAgo(19) },
+  { id: "doc-1014-form", claimId: "cl-1014", type: "claim_form", filename: "charter-risk-property-claim-centurion-theft.pdf", uploadedById: "u-broker-thabo", uploadedAt: daysAgo(45) },
+  { id: "doc-1014-saps", claimId: "cl-1014", type: "police_report", filename: "saps-case-centurion.pdf", uploadedById: "u-cp-kopano", uploadedAt: daysAgo(44) },
+  { id: "doc-1014-ownership", claimId: "cl-1014", type: "other", filename: "generator-asset-register-extract.pdf", uploadedById: "u-cp-kopano", uploadedAt: daysAgo(43) },
+  { id: "doc-1013-form", claimId: "cl-1013", type: "claim_form", filename: "old-mutual-glass-claim-tipper.pdf", uploadedById: "u-cp-kopano", uploadedAt: daysAgo(120) },
+  { id: "doc-1013-photos", claimId: "cl-1013", type: "photo", filename: "tipper-windscreen-crack.jpg", uploadedById: "u-cp-kopano", uploadedAt: daysAgo(120) },
 ];
 
 // ---- Messages / Comments ----------------------------------------------------
@@ -518,6 +705,24 @@ export const SEED_COMMENTS: CommentEntry[] = [
 function auditForClaim(claim: Claim, action: string, actorId: string, actorRole: AuditEntry["actorRole"], when: string): AuditEntry {
   return { id: `aud-${claim.id}-${action.replace(/\s+/g, "-").toLowerCase()}`, claimId: claim.id, clientId: claim.clientId, actorId, actorRole, action, createdAt: when };
 }
+
+const kopano = (id: string) => KOPANO_CLAIMS.find((c) => c.id === id)!;
+const KOPANO_AUDIT: AuditEntry[] = [
+  auditForClaim(kopano("cl-1018"), "Claim lodged (self-service)", "u-cp-kopano", "client_primary", daysAgo(1)),
+  auditForClaim(kopano("cl-1017"), "Claim lodged (self-service)", "u-cp-kopano", "client_primary", daysAgo(4)),
+  auditForClaim(kopano("cl-1017"), "Document checklist updated — repair quotation and photos requested", "u-broker-thabo", "broker", daysAgo(2)),
+  auditForClaim(kopano("cl-1016"), "Claim lodged (broker-assisted)", "u-broker-thabo", "broker", daysAgo(12)),
+  auditForClaim(kopano("cl-1016"), "Forwarded to insurer — claim number OM-PL-71904 recorded", "u-broker-thabo", "broker", daysAgo(8)),
+  auditForClaim(kopano("cl-1015"), "Claim lodged (self-service)", "u-cs-kopano", "client_secondary", daysAgo(20)),
+  auditForClaim(kopano("cl-1015"), "Forwarded to insurer — claim number OM-MC-60477 recorded", "u-broker-thabo", "broker", daysAgo(16)),
+  auditForClaim(kopano("cl-1015"), 'Claim moved to "Under Assessment"', "u-broker-thabo", "broker", daysAgo(6)),
+  auditForClaim(kopano("cl-1014"), "Claim lodged (broker-assisted)", "u-broker-thabo", "broker", daysAgo(45)),
+  auditForClaim(kopano("cl-1014"), "Insurer decision recorded — Settled (Cash)", "u-broker-thabo", "broker", daysAgo(9)),
+  auditForClaim(kopano("cl-1014"), 'Claim moved to "Awaiting Insurer Payment"', "u-broker-thabo", "broker", daysAgo(5)),
+  auditForClaim(kopano("cl-1013"), "Claim lodged (self-service)", "u-cp-kopano", "client_primary", daysAgo(120)),
+  auditForClaim(kopano("cl-1013"), "Insurer decision recorded — Settled (Replacement)", "u-broker-thabo", "broker", daysAgo(110)),
+  auditForClaim(kopano("cl-1013"), "Claim closed", "u-broker-thabo", "broker", daysAgo(98)),
+];
 
 export const SEED_AUDIT_ENTRIES: AuditEntry[] = [
   auditForClaim(SEED_CLAIMS[0], "Claim lodged (self-service)", "u-cp-metro", "client_primary", daysAgo(1)),
@@ -557,6 +762,7 @@ export const SEED_AUDIT_ENTRIES: AuditEntry[] = [
   auditForClaim(SEED_CLAIMS[10], "Claim marked as Disputed", "u-broker-werner", "broker", daysAgo(4)),
   auditForClaim(SEED_CLAIMS[11], "Claim lodged (self-service)", "u-cp-horizon", "client_primary", daysAgo(15)),
   auditForClaim(SEED_CLAIMS[11], "Insurer decision recorded — Not Taken Up", "u-broker-aisha", "broker", daysAgo(3)),
+  ...KOPANO_AUDIT,
 ];
 
 // ---- Reports & settings -------------------------------------------------------
@@ -573,6 +779,7 @@ export const SEED_COMPANY_SETTINGS: CompanySettings = {
     "This report is generated for the exclusive use of the named client and is derived from claim data held by Aris Brokers (Pty) Ltd as at the generation date shown above.",
   vatRate: 15,
   defaultReminderIntervalDays: 5,
+  clientStageLabels: DEFAULT_CLIENT_STAGE_LABELS,
 };
 
 export function buildSeedState(): MockState {
