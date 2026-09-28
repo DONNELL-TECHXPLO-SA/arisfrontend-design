@@ -8,7 +8,7 @@ import { AlertIcon } from "@/icons";
 import { findClient, findSection, formatDate } from "@/lib/mock/helpers";
 import { useData } from "@/lib/mock/store";
 import { useClaimAccess } from "@/lib/mock/useClaimAccess";
-import { usePathname } from "@/i18n/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import { useParams } from "next/navigation";
 
 export default function ClaimDetailLayout({ children }: { children: React.ReactNode }) {
@@ -48,25 +48,41 @@ export default function ClaimDetailLayout({ children }: { children: React.ReactN
 
   return (
     <div>
-      <PageBreadcrumb pageTitle={claim.reference} />
+      <nav className="mb-3 flex items-center gap-1.5 text-theme-xs text-gray-400">
+        <Link href="/claims" className="transition-colors hover:text-ink dark:hover:text-white">Claims</Link>
+        <span aria-hidden className="text-gray-300 dark:text-gray-600">/</span>
+        <span className="text-gray-600 dark:text-gray-300">{claim.reference}</span>
+      </nav>
 
-      <div className="mb-5 rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/3">
+      <div className="mb-5 rounded-3xl bg-white p-5 shadow-card sm:p-6 dark:bg-gray-900">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-theme-xl font-semibold text-gray-800 dark:text-white/90">{claim.reference}</h1>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h1 className="text-title-sm font-medium tracking-tight text-ink dark:text-white">{claim.reference}</h1>
               {claim.lateReported && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-warning-50 px-2 py-0.5 text-theme-xs font-medium text-warning-600 dark:bg-warning-500/15 dark:text-warning-400">
-                  <AlertIcon className="size-3" /> Late Reported
+                <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-theme-xs font-medium text-brand-600 dark:bg-brand-500/15 dark:text-brand-400">
+                  <AlertIcon className="size-3" /> Late reported
                 </span>
               )}
             </div>
-            <p className="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">
-              {client?.name} · {claim.claimType} · {section?.insurer} · Loss on {formatDate(claim.dateOfLoss)}
-            </p>
+            <p className="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">{client?.name}</p>
           </div>
           <StatusBadge status={claim.status} />
         </div>
+
+        <dl className="mt-5 grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+          {[
+            { label: "Client", value: client?.name ?? "—" },
+            { label: "Claim type", value: claim.claimType },
+            { label: "Insurer", value: section?.insurer ?? "—" },
+            { label: "Date of loss", value: formatDate(claim.dateOfLoss) },
+          ].map((f) => (
+            <div key={f.label} className="rounded-2xl bg-gray-50 px-4 py-3 dark:bg-white/[0.03]">
+              <dt className="text-theme-xs text-gray-400">{f.label}</dt>
+              <dd className="mt-1 truncate text-theme-sm font-medium text-ink dark:text-white">{f.value}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
 
       <Tabs tabs={tabs} active={active} className="mb-6" />

@@ -97,7 +97,7 @@ export default function ClientNewClaimPage() {
       <h1 className="mb-6 text-title-sm font-semibold text-gray-800 dark:text-white/90">New Claim</h1>
       <StepProgress steps={steps} currentIndex={stepIndex} onStepClick={setStepIndex} className="mb-8" />
 
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/3">
+      <div className="rounded-3xl shadow-card bg-white p-5 dark:bg-gray-900">
         {currentKey === "policy" && (
           <div className="space-y-5">
             <div>

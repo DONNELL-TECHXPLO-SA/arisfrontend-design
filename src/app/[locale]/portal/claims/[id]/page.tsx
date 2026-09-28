@@ -3,7 +3,11 @@
 import ComponentCard from "@/components/common/ComponentCard";
 import Alert from "@/components/ui/alert/Alert";
 import { Link } from "@/i18n/navigation";
-import { auditFor, checklistFor, clientAttentionFor, documentsFor, formatDateTime } from "@/lib/mock/helpers";
+import UserAvatar from "@/components/common/UserAvatar";
+import ClientTimeline from "@/components/portal/ClientTimeline";
+import { clientTimeline } from "@/lib/mock/clientJourney";
+import { auditFor, checklistFor, documentsFor, findSection, formatDate, formatDateTime } from "@/lib/mock/helpers";
+import { Mail, Phone } from "lucide-react";
 import { useData } from "@/lib/mock/store";
 import { useClaimAccess } from "@/lib/mock/useClaimAccess";
 import { useParams } from "next/navigation";
@@ -15,7 +19,6 @@ export default function ClientClaimStatusPage() {
   if (!claim) return null;
 
   const documents = documentsFor(state, claim.id);
-  const attention = clientAttentionFor(claim, state.documents);
   const timeline = auditFor(state, { claimId: claim.id });
   const checklist = checklistFor(state, claim.id);
   const claimFormStarted = !!claim.claimFormValues && Object.keys(claim.claimFormValues).length > 0;
@@ -29,20 +32,37 @@ export default function ClientClaimStatusPage() {
           message="This claim was reported more than 30 days after the date of loss, which the Insurer may consider grounds for rejection."
         />
       )}
-      {(claim.status === "repudiated" || claim.status === "within_excess" || claim.status === "not_taken_up") && (
-        <Alert
-          variant="info"
-          title="No action needed"
-          message={
-            claim.status === "repudiated"
-              ? "The insurer has repudiated this claim. There is nothing further for you to do here."
-              : claim.status === "not_taken_up"
-                ? "This claim was withdrawn. There is nothing further for you to do here."
-                : "This loss falls within your policy excess, so no payment arises. There is nothing further for you to do here."
-          }
-        />
+
+      {claim.assessor?.sharedWithClientAt && (
+        <ComponentCard
+          title="Your assessor"
+          desc={`Appointed by ${findSection(state, claim.sectionId)?.insurer ?? "your insurer"} on ${formatDate(claim.assessor.sharedWithClientAt)}. They'll contact you to arrange an inspection.`}
+        >
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <UserAvatar name={claim.assessor.name ?? claim.assessor.company ?? "Assessor"} size="lg" />
+              <div className="min-w-0">
+                <p className="truncate text-base font-medium text-ink dark:text-white">{claim.assessor.name ?? claim.assessor.company}</p>
+                {claim.assessor.name && claim.assessor.company && (
+                  <p className="truncate text-theme-sm text-gray-500 dark:text-gray-400">{claim.assessor.company}</p>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 sm:items-end">
+              {claim.assessor.contact && (
+                <p className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3.5 py-1.5 text-theme-sm text-ink dark:bg-white/5 dark:text-white">
+                  <Phone className="size-4 text-gray-400" strokeWidth={1.75} /> {claim.assessor.contact}
+                </p>
+              )}
+              {claim.assessor.email && (
+                <p className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3.5 py-1.5 text-theme-sm text-ink dark:bg-white/5 dark:text-white">
+                  <Mail className="size-4 text-gray-400" strokeWidth={1.75} /> {claim.assessor.email}
+                </p>
+              )}
+            </div>
+          </div>
+        </ComponentCard>
       )}
-      {attention && <Alert variant="warning" title="Action needed" message={attention} />}
 
       <ComponentCard title="Claim Form" desc={claimFormStarted ? "In progress — pick up where you or your broker left off." : "Not started yet."}>
         <div className="flex items-center justify-between">
@@ -53,17 +73,8 @@ export default function ClientClaimStatusPage() {
         </div>
       </ComponentCard>
 
-      <ComponentCard title="Timeline">
-        <ol className="relative space-y-6 ps-6">
-          <span className="absolute top-1 bottom-1 start-[7px] w-px bg-gray-200 dark:bg-gray-800" />
-          {timeline.map((entry) => (
-            <li key={entry.id} className="relative">
-              <span className="absolute -start-6 top-1 size-3.5 rounded-full border-2 border-white bg-brand-500 dark:border-gray-900" />
-              <p className="text-theme-sm text-gray-700 dark:text-gray-300">{entry.action}</p>
-              <p className="text-theme-xs text-gray-400">{formatDateTime(entry.createdAt)}</p>
-            </li>
-          ))}
-        </ol>
+      <ComponentCard title="Updates">
+        <ClientTimeline events={clientTimeline(timeline, claim, state)} />
       </ComponentCard>
 
       <ComponentCard title="Document Checklist" desc="Advisory only.">

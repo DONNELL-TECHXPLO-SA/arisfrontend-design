@@ -1,17 +1,22 @@
 "use client";
 
 import ComponentCard from "@/components/common/ComponentCard";
+import PolicyDocuments from "@/components/policies/PolicyDocuments";
+import { useAuth } from "@/context/AuthContext";
 import Button from "@/components/ui/button/Button";
 import { Link } from "@/i18n/navigation";
 import { PlusIcon } from "@/icons";
 import { formatCurrency, formatDate } from "@/lib/mock/helpers";
-import { useData } from "@/lib/mock/store";
+import { canEditClient, useData } from "@/lib/mock/store";
 import { useParams } from "next/navigation";
 
 export default function ClientPoliciesPage() {
   const { id } = useParams<{ id: string }>();
   const { state } = useData();
+  const { currentUser } = useAuth();
   const policies = state.policies.filter((p) => p.clientId === id);
+  const client = state.clients.find((c) => c.id === id);
+  const canEdit = !!currentUser && !!client && canEditClient(currentUser.role, currentUser.id, client);
 
   return (
     <div className="space-y-6">
@@ -32,12 +37,18 @@ export default function ClientPoliciesPage() {
         <p className="text-theme-sm text-gray-500 dark:text-gray-400">No policies on file for this client yet.</p>
       ) : (
         policies.map((policy) => (
-          <ComponentCard key={policy.id} title={policy.policyNumber} desc={`${formatDate(policy.periodStart)} — ${formatDate(policy.periodEnd)}`}>
+          <ComponentCard
+            key={policy.id}
+            title={policy.policyNumber}
+            desc={`${formatDate(policy.periodStart)} — ${formatDate(policy.periodEnd)}${
+              policy.annualPremium ? ` · ${formatCurrency(policy.annualPremium)} annual premium` : ""
+            }`}
+          >
             <div className="space-y-4">
               {policy.sections.map((section) => {
                 const assets = state.assets.filter((a) => a.sectionId === section.id);
                 return (
-                  <div key={section.id} className="rounded-lg border border-gray-100 p-3 dark:border-white/10">
+                  <div key={section.id} className="rounded-2xl bg-gray-50 p-4 dark:bg-white/[0.03]">
                     <div className="flex items-center justify-between">
                       <p className="text-theme-sm font-medium text-gray-700 dark:text-gray-300">
                         {section.name} — {section.insurer}
@@ -52,6 +63,7 @@ export default function ClientPoliciesPage() {
                   </div>
                 );
               })}
+              <PolicyDocuments policy={policy} canEdit={canEdit} />
             </div>
           </ComponentCard>
         ))

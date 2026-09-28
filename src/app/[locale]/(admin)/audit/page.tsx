@@ -31,7 +31,7 @@ export default function AuditTrailPage() {
   return (
     <div>
       <PageBreadcrumb pageTitle="Audit Trail" />
-      <div className="mb-5 grid grid-cols-1 gap-4 rounded-xl border border-gray-200 bg-white p-4 sm:grid-cols-3 dark:border-white/5 dark:bg-white/3">
+      <div className="mb-5 grid grid-cols-1 gap-4 rounded-3xl shadow-card bg-white p-4 sm:grid-cols-3 dark:bg-gray-900">
         <div>
           <Label>From</Label>
           <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
@@ -45,9 +45,9 @@ export default function AuditTrailPage() {
           <Input value={actionQuery} onChange={(e) => setActionQuery(e.target.value)} placeholder="e.g. decision, document, closed" />
         </div>
       </div>
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/3">
+      <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-gray-200/70 dark:bg-gray-900 dark:ring-white/5">
         <Table>
-          <TableHeader className="border-b border-gray-100 dark:border-white/5">
+          <TableHeader className="bg-gray-50 dark:bg-white/[0.03]">
             <TableRow>
               <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">Action</TableCell>
               <TableCell isHeader className="px-4 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">Client</TableCell>
@@ -65,7 +65,11 @@ export default function AuditTrailPage() {
               const actor = findUser(state, entry.actorId);
               const client = findClient(state, entry.clientId);
               return (
-                <TableRow key={entry.id}>
+                <TableRow
+                  key={entry.id}
+                  href={entry.claimId ? `/claims/${entry.claimId}` : entry.clientId ? `/clients/${entry.clientId}` : undefined}
+                  label={entry.claimId ? "Open the claim for this entry" : entry.clientId ? "Open the client for this entry" : undefined}
+                >
                   <TableCell className="px-5 py-3 text-theme-sm text-gray-700 sm:px-6 dark:text-gray-300">{entry.action}</TableCell>
                   <TableCell className="px-4 py-3 text-theme-sm text-gray-500 dark:text-gray-400">{client?.name ?? "—"}</TableCell>
                   <TableCell className="px-4 py-3 text-theme-sm text-gray-500 dark:text-gray-400">

@@ -187,7 +187,7 @@ const Calendar: React.FC = () => {
 
   return (
     <div
-      className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/3"
+      className="overflow-hidden rounded-3xl shadow-card bg-white dark:bg-gray-900"
       data-color-scheme={theme}
     >
       <div

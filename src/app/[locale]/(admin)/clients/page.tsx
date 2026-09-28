@@ -30,9 +30,9 @@ export default function ClientsListPage() {
           </Link>
         )}
       </div>
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/3">
+      <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-gray-200/70 dark:bg-gray-900 dark:ring-white/5">
         <Table>
-          <TableHeader className="border-b border-gray-100 dark:border-white/5">
+          <TableHeader className="bg-gray-50 dark:bg-white/[0.03]">
             <TableRow>
               <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">Client</TableCell>
               <TableCell isHeader className="px-4 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">Broker</TableCell>
@@ -46,9 +46,9 @@ export default function ClientsListPage() {
               const policyCount = state.policies.filter((p) => p.clientId === client.id).length;
               const editable = canEditClient(role, currentUser?.id ?? "", client);
               return (
-                <TableRow key={client.id} className="hover:bg-gray-50 dark:hover:bg-white/2">
+                <TableRow key={client.id} href={`/clients/${client.id}`} label={`Open ${client.name}`}>
                   <TableCell className="px-5 py-4 sm:px-6">
-                    <Link href={`/clients/${client.id}`} className="text-theme-sm font-medium text-brand-600 dark:text-brand-400">
+                    <Link href={`/clients/${client.id}`} className="text-theme-sm font-semibold text-ink transition-colors hover:text-brand-600 dark:text-white dark:hover:text-brand-400">
                       {client.name}
                     </Link>
                   </TableCell>

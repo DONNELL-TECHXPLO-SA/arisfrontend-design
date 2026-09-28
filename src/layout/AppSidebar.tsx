@@ -1,343 +1,273 @@
 "use client";
 
 import Wordmark from "@/components/common/Wordmark";
-import { useAuth } from "@/context/AuthContext";
+import { homeForRole, isInternalRole, useAuth } from "@/context/AuthContext";
 import { Link, usePathname } from "@/i18n/navigation";
 import type { Role } from "@/lib/mock/types";
 import { cn } from "@/utils";
-import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSidebar } from "../context/SidebarContext";
 import {
-  ChevronDownIcon,
-  DocsIcon,
-  FolderIcon,
-  GridIcon,
-  GroupIcon,
-  HorizontaLDots,
-  ListIcon,
-  PlugInIcon,
-  TimeIcon,
-  UserIcon,
-} from "../icons/index";
+  Boxes,
+  ChartColumn,
+  ChevronDown,
+  FilePlus2,
+  FileStack,
+  History,
+  LayoutGrid,
+  MessageCircle,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Settings2,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useCallback, useMemo, useState } from "react";
+import { useSidebar } from "../context/SidebarContext";
+
 type NavItem = {
   key: string;
   icon: React.ReactNode;
   path?: string;
-  new?: boolean;
-  target?: string;
-  subItems?: {
-    key: string;
-    path: string;
-    pro?: boolean;
-    new?: boolean;
-    target?: string;
-  }[];
+  subItems?: { key: string; path: string }[];
 };
+
+const ICON = "size-[18px] shrink-0";
 
 // Role-based Admin Portal nav, per ux-blueprint.md §7.3/§7.4/§3.1: Company & Report
 // Settings and Users & Access never render for a Broker (not greyed out — absent).
 // Manager sees everything Broker sees (plus unscoped data, applied at the query level,
 // not the nav level) but not those two Administrator-only items.
-function getNavItems(role: Role): NavItem[] {
-  const items: NavItem[] = [
-    { icon: <GridIcon />, key: "dashboard", path: "/" },
+function getNavItems(role: Role): { main: NavItem[]; admin: NavItem[] } {
+  // Client Portal — same shell as the Admin Portal, but only the client's own areas.
+  if (!isInternalRole(role)) {
+    return {
+      main: [
+        { icon: <LayoutGrid className={ICON} strokeWidth={1.75} />, key: "portalHome", path: "/portal" },
+        {
+          icon: <FileStack className={ICON} strokeWidth={1.75} />,
+          key: "portalClaims",
+          subItems: [
+            { key: "portalClaimsAll", path: "/portal/claims" },
+            { key: "portalClaimsNew", path: "/portal/claims/new" },
+          ],
+        },
+        { icon: <MessageCircle className={ICON} strokeWidth={1.75} />, key: "portalSupport", path: "/portal/support" },
+        { icon: <ChartColumn className={ICON} strokeWidth={1.75} />, key: "portalReports", path: "/portal/reports" },
+      ],
+      admin: [],
+    };
+  }
+
+  const main: NavItem[] = [
+    { icon: <LayoutGrid className={ICON} strokeWidth={1.75} />, key: "dashboard", path: "/" },
     {
-      icon: <ListIcon />,
+      icon: <FileStack className={ICON} strokeWidth={1.75} />,
       key: "claims",
       subItems: [
         { key: "claimsAll", path: "/claims" },
         { key: "claimsNew", path: "/claims/new" },
       ],
     },
-    { icon: <GroupIcon />, key: "clientsPolicies", path: "/clients" },
+    { icon: <Users className={ICON} strokeWidth={1.75} />, key: "clientsPolicies", path: "/clients" },
     {
-      icon: <DocsIcon />,
+      icon: <ChartColumn className={ICON} strokeWidth={1.75} />,
       key: "reports",
       subItems: [
         { key: "reportsGenerate", path: "/reports" },
         { key: "reportsHistory", path: "/reports/history" },
       ],
     },
-    { icon: <TimeIcon />, key: "auditTrail", path: "/audit" },
+    { icon: <History className={ICON} strokeWidth={1.75} />, key: "auditTrail", path: "/audit" },
   ];
 
-  if (role === "administrator") {
-    items.push(
-      { icon: <UserIcon />, key: "usersAccess", path: "/users" },
-      { icon: <FolderIcon />, key: "productConfig", path: "/settings/products" },
-      { icon: <PlugInIcon />, key: "companySettings", path: "/settings/company" },
-    );
-  }
+  const admin: NavItem[] =
+    role === "administrator"
+      ? [
+          { icon: <ShieldCheck className={ICON} strokeWidth={1.75} />, key: "usersAccess", path: "/users" },
+          { icon: <Boxes className={ICON} strokeWidth={1.75} />, key: "productConfig", path: "/settings/products" },
+          { icon: <Settings2 className={ICON} strokeWidth={1.75} />, key: "companySettings", path: "/settings/company" },
+        ]
+      : [];
 
-  return items;
+  return { main, admin };
 }
 
 const AppSidebar: React.FC = () => {
-  const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+  const { isExpanded, isMobileOpen, isHovered, setIsHovered, toggleSidebar } = useSidebar();
   const pathname = usePathname();
   const t = useTranslations("sidebar");
   const { currentUser } = useAuth();
-  const navItems = useMemo(() => getNavItems(currentUser?.role ?? "broker"), [currentUser?.role]);
+  const role = currentUser?.role ?? "broker";
+  const { main, admin } = useMemo(() => getNavItems(role), [role]);
+  const isClient = !isInternalRole(role);
+  const canLodge = isClient || role === "broker" || role === "administrator";
+  const lodgeHref = isClient ? "/portal/claims/new" : "/claims/new";
 
-  const renderMenuItems = (
-    navItems: NavItem[],
-    menuType: "main" | "support" | "others",
-  ) => (
+  const isOpen = isExpanded || isHovered || isMobileOpen;
+  const isActive = useCallback((path: string) => path === pathname, [pathname]);
+  const routeOwner = [...main, ...admin].find((nav) => nav.subItems?.some((s) => isActive(s.path)))?.key ?? null;
+
+  // Open whichever group owns the current route; re-sync (during render) when the route changes.
+  const [openSubmenu, setOpenSubmenu] = useState<string | null>(routeOwner);
+  const [syncedPath, setSyncedPath] = useState(pathname);
+  if (syncedPath !== pathname) {
+    setSyncedPath(pathname);
+    setOpenSubmenu(routeOwner);
+  }
+
+  const renderItems = (items: NavItem[]) => (
     <ul className="flex flex-col gap-1">
-      {navItems.map((nav, index) => (
-        <li key={nav.key}>
-          {nav.subItems ? (
-            <button
-              onClick={() => handleSubmenuToggle(index, menuType)}
-              className={cn(
-                "group menu-item cursor-pointer",
-                openSubmenu?.type === menuType && openSubmenu?.index === index
-                  ? "menu-item-active"
-                  : "menu-item-inactive",
-                !isExpanded && !isHovered
-                  ? "lg:justify-center"
-                  : "lg:justify-start",
-              )}
-            >
-              <span
-                className={cn(
-                  openSubmenu?.type === menuType && openSubmenu?.index === index
-                    ? "menu-item-icon-active"
-                    : "menu-item-icon-inactive",
-                )}
+      {items.map((nav) => {
+        const groupActive = !!nav.subItems?.some((s) => isActive(s.path));
+        const expanded = openSubmenu === nav.key;
+        const itemClass = cn(
+          "group menu-item",
+          !isOpen && "xl:size-12 xl:justify-center xl:px-0",
+        );
+
+        return (
+          <li key={nav.key}>
+            {nav.subItems ? (
+              <button
+                type="button"
+                onClick={() => setOpenSubmenu((prev) => (prev === nav.key ? null : nav.key))}
+                className={cn(itemClass, groupActive && !isOpen ? "menu-item-active" : "menu-item-inactive", groupActive && isOpen && "text-white")}
+                title={!isOpen ? t(`items.${nav.key}`) : undefined}
               >
-                {nav.icon}
-              </span>
-              {(isExpanded || isHovered || isMobileOpen) && (
-                <span className="menu-item-text">{t(`items.${nav.key}`)}</span>
-              )}
-              {nav.new && (isExpanded || isHovered || isMobileOpen) && (
-                <span
-                  className={cn(
-                    "inset-e-10 absolute ms-auto",
-                    openSubmenu?.type === menuType &&
-                      openSubmenu?.index === index
-                      ? "menu-dropdown-badge-active"
-                      : "menu-dropdown-badge-inactive",
-                    "menu-dropdown-badge",
-                  )}
-                >
-                  {t("badges.new")}
-                </span>
-              )}
-              {(isExpanded || isHovered || isMobileOpen) && (
-                <ChevronDownIcon
-                  className={cn(
-                    "ms-auto h-5 w-5 transition-transform duration-200",
-                    openSubmenu?.type === menuType &&
-                      openSubmenu?.index === index
-                      ? "rotate-180 text-brand-500"
-                      : "",
-                  )}
-                />
-              )}
-            </button>
-          ) : (
-            nav.path && (
-              <Link
-                href={nav.path}
-                target={nav.target}
-                className={cn(
-                  "group menu-item",
-                  isActive(nav.path)
-                    ? "menu-item-active"
-                    : "menu-item-inactive",
-                )}
-              >
-                <span
-                  className={cn(
-                    isActive(nav.path)
-                      ? "menu-item-icon-active"
-                      : "menu-item-icon-inactive",
-                  )}
-                >
+                <span className={groupActive && !isOpen ? "menu-item-icon-active" : groupActive ? "text-white" : "menu-item-icon-inactive"}>
                   {nav.icon}
                 </span>
-                {(isExpanded || isHovered || isMobileOpen) && (
-                  <span className="menu-item-text">
-                    {t(`items.${nav.key}`)}
-                  </span>
+                {isOpen && <span className="menu-item-text">{t(`items.${nav.key}`)}</span>}
+                {isOpen && (
+                  <ChevronDown
+                    className={cn("ms-auto size-4 text-gray-500 transition-transform duration-200", expanded && "rotate-180")}
+                  />
                 )}
-              </Link>
-            )
-          )}
-          {nav.subItems && (isExpanded || isHovered || isMobileOpen) && (
-            <div
-              ref={(el) => {
-                subMenuRefs.current[`${menuType}-${index}`] = el;
-              }}
-              className="overflow-hidden transition-all duration-300"
-              style={{
-                height:
-                  openSubmenu?.type === menuType && openSubmenu?.index === index
-                    ? `${subMenuHeight[`${menuType}-${index}`]}px`
-                    : "0px",
-              }}
-            >
-              <ul className="ms-9 mt-2 space-y-1">
-                {nav.subItems.map((subItem) => (
-                  <li key={subItem.key}>
-                    <Link
-                      href={subItem.path}
-                      target={subItem.target}
-                      className={`menu-dropdown-item ${
-                        isActive(subItem.path)
-                          ? "menu-dropdown-item-active"
-                          : "menu-dropdown-item-inactive"
-                      }`}
-                    >
-                      {t(`items.${subItem.key}`)}
-                      <span className="ms-auto flex items-center gap-1">
-                        {subItem.new && (
-                          <span
-                            className={`ms-auto ${
-                              isActive(subItem.path)
-                                ? "menu-dropdown-badge-active"
-                                : "menu-dropdown-badge-inactive"
-                            } menu-dropdown-badge`}
-                          >
-                            {t("badges.new")}
-                          </span>
-                        )}
-                        {subItem.pro && (
-                          <span
-                            className={`ms-auto ${
-                              isActive(subItem.path)
-                                ? "menu-dropdown-badge-pro-active"
-                                : "menu-dropdown-badge-pro-inactive"
-                            } menu-dropdown-badge-pro`}
-                          >
-                            {t("badges.pro")}
-                          </span>
-                        )}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </li>
-      ))}
+              </button>
+            ) : (
+              nav.path && (
+                <Link
+                  href={nav.path}
+                  className={cn(itemClass, isActive(nav.path) ? "menu-item-active" : "menu-item-inactive")}
+                  title={!isOpen ? t(`items.${nav.key}`) : undefined}
+                >
+                  <span className={isActive(nav.path) ? "menu-item-icon-active" : "menu-item-icon-inactive"}>{nav.icon}</span>
+                  {isOpen && <span className="menu-item-text">{t(`items.${nav.key}`)}</span>}
+                </Link>
+              )
+            )}
+
+            {nav.subItems && isOpen && (
+              <div className={cn("menu-accordion", expanded && "open")}>
+                <div>
+                  <ul className="ms-6.5 mt-1 mb-1 space-y-0.5 border-s border-white/10 ps-4">
+                    {nav.subItems.map((sub) => (
+                      <li key={sub.key}>
+                        <Link
+                          href={sub.path}
+                          className={cn(
+                            "menu-dropdown-item",
+                            isActive(sub.path) ? "menu-dropdown-item-active" : "menu-dropdown-item-inactive",
+                          )}
+                        >
+                          {t(`items.${sub.key}`)}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 
-  const [openSubmenu, setOpenSubmenu] = useState<{
-    type: "main" | "support" | "others";
-    index: number;
-  } | null>(null);
-  const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
-    {},
-  );
-  const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
-
-  // const isActive = (path: string) => path === pathname;
-
-  const isActive = useCallback((path: string) => path === pathname, [pathname]);
-
-  useEffect(() => {
-    // Check if the current path matches any submenu item
-    let submenuMatched = false;
-    ["main"].forEach((menuType) => {
-      const items = navItems;
-      items.forEach((nav, index) => {
-        if (nav.subItems) {
-          nav.subItems.forEach((subItem) => {
-            if (isActive(subItem.path)) {
-              setOpenSubmenu({
-                type: menuType as "main" | "support" | "others",
-                index,
-              });
-              submenuMatched = true;
-            }
-          });
-        }
-      });
-    });
-
-    // If no submenu item matches, close the open submenu
-    if (!submenuMatched) {
-      setOpenSubmenu(null);
-    }
-  }, [pathname, isActive, navItems]);
-
-  useEffect(() => {
-    // Set the height of the submenu items when the submenu is opened
-    if (openSubmenu !== null) {
-      const key = `${openSubmenu.type}-${openSubmenu.index}`;
-      if (subMenuRefs.current[key]) {
-        setSubMenuHeight((prevHeights) => ({
-          ...prevHeights,
-          [key]: subMenuRefs.current[key]?.scrollHeight || 0,
-        }));
-      }
-    }
-  }, [openSubmenu]);
-
-  const handleSubmenuToggle = (
-    index: number,
-    menuType: "main" | "support" | "others",
-  ) => {
-    setOpenSubmenu((prevOpenSubmenu) => {
-      if (
-        prevOpenSubmenu &&
-        prevOpenSubmenu.type === menuType &&
-        prevOpenSubmenu.index === index
-      ) {
-        return null;
-      }
-      return { type: menuType, index };
-    });
-  };
+  const groupLabel = (label: string) =>
+    isOpen ? (
+      <h2 className="mb-2 px-3.5 text-[11px] font-medium tracking-[0.14em] text-gray-500 uppercase">
+        {label}
+      </h2>
+    ) : (
+      <div className="mx-auto mb-3 h-px w-6 bg-white/10" />
+    );
 
   return (
     <aside
-      className={`fixed top-0 left-0 z-50 flex h-full flex-col border-r border-gray-200 bg-white px-5 text-gray-900 transition-all duration-300 ease-in-out xl:mt-0 rtl:right-0 rtl:left-auto rtl:border-r-0 rtl:border-l dark:border-gray-800 dark:bg-gray-900 ${
-        isExpanded || isMobileOpen ? "w-72.5" : isHovered ? "w-72.5" : "w-22.5"
-      } ${
-        isMobileOpen
-          ? "translate-x-0"
-          : "-translate-x-full rtl:translate-x-full"
-      } xl:translate-x-0 xl:rtl:translate-x-0`}
+      className={cn(
+        "fixed inset-y-0 start-0 z-50 flex flex-col bg-charcoal text-white transition-all duration-300 ease-in-out dark:ring-1 dark:ring-white/5",
+        "xl:inset-y-3 xl:start-3 xl:rounded-[28px] xl:shadow-card",
+        isHovered && !isExpanded && "xl:shadow-float",
+        isOpen ? "w-64 px-4" : "w-64 px-4 xl:w-20 xl:px-4",
+        isMobileOpen ? "translate-x-0" : "-translate-x-full rtl:translate-x-full",
+        "xl:translate-x-0 xl:rtl:translate-x-0",
+      )}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div
-        className={`flex py-8 ${
-          !isExpanded && !isHovered ? "xl:justify-center" : "justify-start"
-        }`}
-      >
-        <Link href="/">
-          <Wordmark variant={isExpanded || isHovered || isMobileOpen ? "full" : "mark"} />
+      <div className={cn("flex h-24 shrink-0 items-center", isOpen ? "px-2" : "xl:justify-center")}>
+        <Link href={homeForRole(role)}>
+          <Wordmark tone="inverted" variant={isOpen ? "full" : "mark"} />
         </Link>
       </div>
-      <div className="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
-        <nav className="mb-6">
-          <div className="flex flex-col gap-4">
-            <div>
-              <h2
-                className={`mb-4 flex text-xs leading-5 text-gray-400 uppercase ${
-                  !isExpanded && !isHovered
-                    ? "xl:justify-center"
-                    : "justify-start"
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? (
-                  t("groups.menu")
-                ) : (
-                  <HorizontaLDots />
-                )}
-              </h2>
-              {renderMenuItems(navItems, "main")}
-            </div>
+
+      <nav className="no-scrollbar -mx-1 flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-1 pt-2">
+        <div className={cn(!isOpen && "xl:flex xl:flex-col xl:items-center")}>
+          {groupLabel(t("groups.menu"))}
+          {renderItems(main)}
+        </div>
+        {admin.length > 0 && (
+          <div className={cn(!isOpen && "xl:flex xl:flex-col xl:items-center")}>
+            {groupLabel("Administration")}
+            {renderItems(admin)}
           </div>
-        </nav>
+        )}
+      </nav>
+
+      <div className="shrink-0 space-y-3 py-4">
+        {canLodge &&
+          (isOpen ? (
+            <div className="relative overflow-hidden rounded-3xl bg-charcoal-soft p-5 text-white ring-1 ring-white/5 [@media(max-height:720px)]:hidden">
+              <span className="pointer-events-none absolute -end-10 -top-10 size-32 rounded-full bg-brand-500/90 blur-2xl" />
+              <span className="relative flex size-9 items-center justify-center rounded-full bg-white/10">
+                <FilePlus2 className="size-4.5" strokeWidth={1.75} />
+              </span>
+              <p className="relative mt-4 text-base leading-snug font-medium">Lodge a new claim</p>
+              <p className="relative mt-1 text-theme-xs text-white/60">Capture the loss while the details are fresh.</p>
+              <Link
+                href={lodgeHref}
+                className="relative mt-4 flex h-10 items-center justify-center rounded-full bg-white text-sm font-medium text-ink transition-colors hover:bg-gray-100"
+              >
+                Start claim
+              </Link>
+            </div>
+          ) : (
+            <Link
+              href={lodgeHref}
+              title="Lodge a new claim"
+              className="mx-auto hidden size-12 items-center justify-center rounded-full bg-brand-500 text-white transition-colors hover:bg-brand-600 xl:flex"
+            >
+              <FilePlus2 className="size-4.5" strokeWidth={1.75} />
+            </Link>
+          ))}
+
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          className={cn(
+            "hidden items-center gap-3 rounded-full py-2.5 text-theme-sm font-medium text-gray-400 transition-colors hover:bg-white/[0.07] hover:text-white xl:flex",
+            isOpen ? "w-full px-3.5" : "mx-auto size-12 justify-center",
+          )}
+          aria-label={isExpanded ? "Collapse sidebar" : "Expand sidebar"}
+        >
+          {isExpanded ? (
+            <PanelLeftClose className="size-[18px] rtl:-scale-x-100" strokeWidth={1.75} />
+          ) : (
+            <PanelLeftOpen className="size-[18px] rtl:-scale-x-100" strokeWidth={1.75} />
+          )}
+          {isOpen && <span>{isExpanded ? "Collapse sidebar" : "Keep open"}</span>}
+        </button>
       </div>
     </aside>
   );

@@ -7,7 +7,7 @@ import TextArea from "@/components/form/input/TextArea";
 import Label from "@/components/form/Label";
 import Alert from "@/components/ui/alert/Alert";
 import Button from "@/components/ui/button/Button";
-import StepProgress from "@/components/ui/step-progress/StepProgress";
+import FormSectionProgress from "@/components/claims/FormSectionProgress";
 import { CLAIM_FORM_SCHEMAS } from "@/data/claim-forms";
 import type { ClaimField, RepeatingGroup } from "@/data/claim-forms/types";
 import { useAuth } from "@/context/AuthContext";
@@ -129,7 +129,7 @@ function RepeatingGroupBlock({
   onSetField: (index: number, subKey: string, value: string) => void;
 }) {
   return (
-    <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+    <div className="rounded-2xl bg-gray-50 p-4 dark:bg-white/[0.03]">
       <div className="mb-3 flex items-center justify-between">
         <p className="text-theme-sm font-semibold text-gray-700 dark:text-gray-300">{group.itemLabel}s</p>
         <span className="text-theme-xs text-gray-400">
@@ -138,7 +138,7 @@ function RepeatingGroupBlock({
       </div>
       <div className="space-y-4">
         {entries.map((entry, index) => (
-          <div key={index} className="rounded-lg border border-gray-100 p-3 dark:border-white/10">
+          <div key={index} className="rounded-xl bg-white p-3 shadow-card dark:bg-gray-900">
             <div className="mb-2 flex items-center justify-between">
               <p className="text-theme-xs font-medium text-gray-500 dark:text-gray-400">
                 {group.itemLabel} {index + 1}
@@ -238,7 +238,7 @@ export default function ClaimFormWizard({ slug, claim, portal }: { slug: string;
 
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-theme-lg font-semibold text-gray-800 dark:text-white/90">{schema.title}</h1>
+          <h1 className="text-theme-xl font-medium tracking-tight text-ink dark:text-white">{schema.title}</h1>
           <p className="text-theme-sm text-gray-500 dark:text-gray-400">
             {schema.insurer}
             {schema.description ? ` · ${schema.description}` : ""}
@@ -253,10 +253,12 @@ export default function ClaimFormWizard({ slug, claim, portal }: { slug: string;
         <Alert variant="info" title="Previously saved" message="This form was saved before — re-downloading reflects the claim's current data, not a frozen snapshot." />
       )}
 
-      <StepProgress steps={steps} currentIndex={stepIndex} onStepClick={setStepIndex} className="my-6" />
+      <div className="my-6">
+        <FormSectionProgress sections={steps} currentIndex={stepIndex} onJump={setStepIndex} />
+      </div>
 
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/3">
-        <h2 className="mb-4 text-theme-sm font-semibold text-gray-700 dark:text-gray-300">{activeSection.title}</h2>
+      <div className="rounded-3xl shadow-card bg-white p-5 dark:bg-gray-900">
+        <h2 className="sr-only">{activeSection.title}</h2>
         <div className="space-y-5">
           {fieldsForSection.map((field) => (
             <FieldInput

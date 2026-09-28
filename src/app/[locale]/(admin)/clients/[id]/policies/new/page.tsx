@@ -11,7 +11,10 @@ import { CLAIM_FORM_REGISTRY } from "@/data/claim-forms";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "@/i18n/navigation";
 import { PlusIcon, TrashBinIcon } from "@/icons";
+import { POLICY_DOCUMENT_TYPES } from "@/components/policies/policyDocumentTypes";
+import { INLINE_FILE_LIMIT_BYTES, readFileAsDataUrl } from "@/lib/files";
 import { useData } from "@/lib/mock/store";
+import type { PolicyDocumentType } from "@/lib/mock/types";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 
@@ -42,6 +45,10 @@ export default function NewPolicyPage() {
   const [periodStart, setPeriodStart] = useState("");
   const [periodEnd, setPeriodEnd] = useState("");
   const [sections, setSections] = useState<DraftSection[]>([emptySection()]);
+  const [annualPremium, setAnnualPremium] = useState("");
+  const [docType, setDocType] = useState<PolicyDocumentType>("schedule");
+  const [docFile, setDocFile] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
 
   if (!currentUser) return null;
 
@@ -56,13 +63,29 @@ export default function NewPolicyPage() {
     sections.length > 0 &&
     sections.every((s) => s.name.trim() && s.insurer && s.claimFormSlug);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit || !currentUser) return;
+    setSaving(true);
+    const documents = docFile
+      ? [
+          {
+            id: `pdoc-${Date.now().toString(36)}`,
+            type: docType,
+            filename: docFile.name,
+            sizeBytes: docFile.size,
+            uploadedById: currentUser.id,
+            uploadedAt: new Date().toISOString(),
+            dataUrl: docFile.size <= INLINE_FILE_LIMIT_BYTES ? await readFileAsDataUrl(docFile) : undefined,
+          },
+        ]
+      : undefined;
     addPolicy({
       policy: {
         clientId,
         policyNumber: policyNumber.trim(),
+        annualPremium: Number(annualPremium) || undefined,
+        documents,
         periodStart: new Date(periodStart).toISOString(),
         periodEnd: new Date(periodEnd).toISOString(),
         sections: sections.map((s) => ({
@@ -103,6 +126,32 @@ export default function NewPolicyPage() {
               </Label>
               <Input type="date" value={periodEnd} onChange={(e) => setPeriodEnd(e.target.value)} />
             </div>
+            <div className="sm:col-span-1">
+              <Label>Annual Premium (ZAR)</Label>
+              <Input type="number" min={0} value={annualPremium} onChange={(e) => setAnnualPremium(e.target.value)} placeholder="e.g. 180000" />
+            </div>
+          </div>
+        </ComponentCard>
+
+        <ComponentCard title="Policy document" desc="Attach the policy schedule now, or add it (and the wording) later from the Policies tab.">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+            <div>
+              <Label>Document type</Label>
+              <Select
+                options={POLICY_DOCUMENT_TYPES.map((t) => ({ value: t.value, label: t.label }))}
+                defaultValue="schedule"
+                onChange={(v) => setDocType(v as PolicyDocumentType)}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Label>File</Label>
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,image/*"
+                onChange={(e) => setDocFile(e.target.files?.[0] ?? null)}
+                className="block h-11 w-full rounded-xl border border-gray-200 bg-white text-theme-sm text-gray-600 file:me-4 file:h-full file:border-0 file:bg-gray-100 file:px-4 file:text-theme-sm file:font-medium file:text-ink dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-300 dark:file:bg-white/5 dark:file:text-white"
+              />
+            </div>
           </div>
         </ComponentCard>
 
@@ -111,7 +160,7 @@ export default function NewPolicyPage() {
             {sections.map((section, index) => {
               const formsForInsurer = CLAIM_FORM_REGISTRY.filter((f) => f.insurer === section.insurer);
               return (
-                <div key={index} className="rounded-lg border border-gray-200 p-4 dark:border-gray-800">
+                <div key={index} className="rounded-2xl bg-gray-50 p-4 dark:bg-white/[0.03]">
                   <div className="mb-3 flex items-center justify-between">
                     <p className="text-theme-xs font-medium text-gray-500 dark:text-gray-400">Section {index + 1}</p>
                     {sections.length > 1 && (
@@ -167,9 +216,7 @@ export default function NewPolicyPage() {
           </div>
         </ComponentCard>
 
-        <Button size="sm" disabled={!canSubmit}>
-          Save Policy
-        </Button>
+        <Button disabled={!canSubmit || saving}>{saving ? "Saving…" : "Save Policy"}</Button>
       </form>
     </div>
   );

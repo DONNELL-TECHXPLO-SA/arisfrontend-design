@@ -1,16 +1,40 @@
+import { cn } from "@/utils";
+
 type BadgeVariant = "light" | "solid";
 type BadgeSize = "sm" | "md";
 type BadgeColor =
   "primary" | "success" | "error" | "warning" | "info" | "light" | "dark";
 
 interface BadgeProps {
-  variant?: BadgeVariant; // Light or solid variant
+  variant?: BadgeVariant; // "light" — neutral chip with a status dot; "solid" — filled pill
   size?: BadgeSize; // Badge size
   color?: BadgeColor; // Badge color
-  startIcon?: React.ReactNode; // Icon at the start
+  startIcon?: React.ReactNode; // Icon at the start (replaces the dot on light badges)
   endIcon?: React.ReactNode; // Icon at the end
   children: React.ReactNode; // Badge content
 }
+
+// Status reads from the dot, not a tinted fill — keeps long tables calm and lets
+// colour carry meaning without every row turning into a rainbow.
+const dotColors: Record<BadgeColor, string> = {
+  primary: "bg-brand-500",
+  success: "bg-success-500",
+  error: "bg-error-500",
+  warning: "bg-warning-400",
+  info: "bg-blue-light-500",
+  light: "bg-gray-300 dark:bg-gray-600",
+  dark: "bg-ink dark:bg-white",
+};
+
+const solidColors: Record<BadgeColor, string> = {
+  primary: "bg-brand-500 text-white",
+  success: "bg-success-500 text-white",
+  error: "bg-error-500 text-white",
+  warning: "bg-warning-500 text-white",
+  info: "bg-blue-light-500 text-white",
+  light: "bg-gray-200 text-gray-700 dark:bg-white/10 dark:text-white/80",
+  dark: "bg-ink text-white dark:bg-white dark:text-ink",
+};
 
 const Badge: React.FC<BadgeProps> = ({
   variant = "light",
@@ -20,50 +44,37 @@ const Badge: React.FC<BadgeProps> = ({
   endIcon,
   children,
 }) => {
-  const baseStyles =
-    "inline-flex items-center px-2.5 py-0.5 justify-center gap-1 rounded-full font-medium";
-
-  // Define size styles
   const sizeStyles = {
-    sm: "text-theme-xs", // Smaller padding and font size
-    md: "text-sm", // Default padding and font size
+    sm: "text-theme-xs py-0.5",
+    md: "text-sm py-1",
   };
 
-  // Define color styles for variants
-  const variants = {
-    light: {
-      primary:
-        "bg-brand-50 text-brand-500 dark:bg-brand-500/15 dark:text-brand-400",
-      success:
-        "bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-500",
-      error:
-        "bg-error-50 text-error-600 dark:bg-error-500/15 dark:text-error-500",
-      warning:
-        "bg-warning-50 text-warning-600 dark:bg-warning-500/15 dark:text-orange-400",
-      info: "bg-blue-light-50 text-blue-light-500 dark:bg-blue-light-500/15 dark:text-blue-light-500",
-      light: "bg-gray-100 text-gray-700 dark:bg-white/5 dark:text-white/80",
-      dark: "bg-gray-500 text-white dark:bg-white/5 dark:text-white",
-    },
-    solid: {
-      primary: "bg-brand-500 text-white dark:text-white",
-      success: "bg-success-500 text-white dark:text-white",
-      error: "bg-error-500 text-white dark:text-white",
-      warning: "bg-warning-500 text-white dark:text-white",
-      info: "bg-blue-light-500 text-white dark:text-white",
-      light: "bg-gray-400 dark:bg-white/5 text-white dark:text-white/80",
-      dark: "bg-gray-700 text-white dark:text-white",
-    },
-  };
-
-  // Get styles based on size and color variant
-  const sizeClass = sizeStyles[size];
-  const colorStyles = variants[variant][color];
+  if (variant === "solid") {
+    return (
+      <span
+        className={cn(
+          "inline-flex items-center justify-center gap-1 rounded-full px-2.5 font-medium",
+          sizeStyles[size],
+          solidColors[color],
+        )}
+      >
+        {startIcon && <span className="me-0.5">{startIcon}</span>}
+        {children}
+        {endIcon && <span className="ms-0.5">{endIcon}</span>}
+      </span>
+    );
+  }
 
   return (
-    <span className={`${baseStyles} ${sizeClass} ${colorStyles}`}>
-      {startIcon && <span className="me-1">{startIcon}</span>}
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 font-medium whitespace-nowrap text-gray-700 dark:bg-white/[0.06] dark:text-gray-200",
+        sizeStyles[size],
+      )}
+    >
+      {startIcon ?? <span className={cn("size-1.5 shrink-0 rounded-full", dotColors[color])} />}
       {children}
-      {endIcon && <span className="ms-1">{endIcon}</span>}
+      {endIcon && <span className="ms-0.5">{endIcon}</span>}
     </span>
   );
 };

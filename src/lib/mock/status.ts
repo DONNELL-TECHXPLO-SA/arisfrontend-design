@@ -53,3 +53,21 @@ export function statusColor(status: ClaimStatus): StatusBadgeColor {
 }
 
 export const ALL_STATUSES = Object.keys(STATUS_META) as ClaimStatus[];
+
+// ---- Overall journey stages -------------------------------------------------------
+// The 16-stage status list condensed into the milestones most users recognise
+// (process-flow.md). Shared by the claim progress tracker and the claims-list stage filter.
+export interface OverallStage {
+  key: string;
+  label: string;
+  statuses: ClaimStatus[];
+}
+
+export const OVERALL_STAGES: OverallStage[] = [
+  { key: "submitted", label: "Submitted", statuses: ["partially_submitted", "submitted", "documents_outstanding"] },
+  { key: "insurer", label: "With Insurer", statuses: ["submitted_to_insurer"] },
+  { key: "assessment", label: "Assessment", statuses: ["under_assessment", "assessment_completed"] },
+  { key: "decision", label: "Decision", statuses: ["awaiting_insurer_decision", "repudiated", "within_excess", "not_taken_up", "disputed"] },
+  { key: "settlement", label: "Settlement", statuses: ["settled", "awaiting_signed_aol", "awaiting_excess_invoice_and_pop", "awaiting_insurer_payment"] },
+  { key: "closed", label: "Closed", statuses: ["closed"] },
+];

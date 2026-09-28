@@ -2,8 +2,9 @@
 
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/utils";
+import { Bell } from "lucide-react";
 import { useTranslations } from "next-intl";
-import Image from "next/image";
+import UserAvatar from "@/components/common/UserAvatar";
 import { useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
@@ -28,37 +29,25 @@ export default function NotificationDropdown() {
   return (
     <div className="relative">
       <button
-        className="dropdown-toggle relative flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+        className="dropdown-toggle relative flex size-10 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-ink dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
+        aria-label={t("title")}
         onClick={handleClick}
       >
         <span
           className={cn(
-            "absolute top-0.5 right-0 z-10 h-2 w-2 rounded-full bg-orange-400",
+            "absolute top-2 end-2.5 z-10 size-2 rounded-full bg-brand-500 ring-2 ring-white dark:ring-gray-900",
             !notifying ? "hidden" : "flex",
           )}
         >
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
+          
         </span>
-        <svg
-          className="fill-current"
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M10.75 2.29248C10.75 1.87827 10.4143 1.54248 10 1.54248C9.58583 1.54248 9.25004 1.87827 9.25004 2.29248V2.83613C6.08266 3.20733 3.62504 5.9004 3.62504 9.16748V14.4591H3.33337C2.91916 14.4591 2.58337 14.7949 2.58337 15.2091C2.58337 15.6234 2.91916 15.9591 3.33337 15.9591H4.37504H15.625H16.6667C17.0809 15.9591 17.4167 15.6234 17.4167 15.2091C17.4167 14.7949 17.0809 14.4591 16.6667 14.4591H16.375V9.16748C16.375 5.9004 13.9174 3.20733 10.75 2.83613V2.29248ZM14.875 14.4591V9.16748C14.875 6.47509 12.6924 4.29248 10 4.29248C7.30765 4.29248 5.12504 6.47509 5.12504 9.16748V14.4591H14.875ZM8.00004 17.7085C8.00004 18.1228 8.33583 18.4585 8.75004 18.4585H11.25C11.6643 18.4585 12 18.1228 12 17.7085C12 17.2943 11.6643 16.9585 11.25 16.9585H8.75004C8.33583 16.9585 8.00004 17.2943 8.00004 17.7085Z"
-            fill="currentColor"
-          />
-        </svg>
+        <Bell className="size-[18px]" strokeWidth={1.75} />
       </button>
 
       <Dropdown
         isOpen={isOpen}
         onClose={closeDropdown}
-        className="absolute -left-13.5 mt-4.25 flex h-120 w-87.5 flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg sm:w-90.25 xl:right-0 xl:left-auto dark:border-gray-800 dark:bg-gray-dark"
+        className="absolute -left-13.5 mt-4.25 flex h-120 w-87.5 flex-col rounded-3xl bg-white p-3 shadow-float sm:w-90.25 xl:right-0 xl:left-auto dark:bg-gray-dark dark:ring-1 dark:ring-white/10"
       >
         <div className="mb-3 flex items-center justify-between border-b border-gray-100 pb-3 dark:border-gray-700">
           <h5 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
@@ -90,16 +79,10 @@ export default function NotificationDropdown() {
           <li>
             <DropdownItem
               onItemClick={closeDropdown}
-              className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
+              className="flex gap-3 rounded-2xl p-3 px-4.5 py-3 hover:bg-gray-50 dark:hover:bg-white/5"
             >
               <span className="relative z-1 block h-10 w-full max-w-10 rounded-full">
-                <Image
-                  width={40}
-                  height={40}
-                  src="/images/user/user-02.jpg"
-                  alt="User"
-                  className="w-full overflow-hidden rounded-full"
-                />
+                <UserAvatar name="Terry Franci" />
                 <span className="absolute right-0 bottom-0 z-10 h-2.5 w-full max-w-2.5 rounded-full border-[1.5px] border-white bg-success-500 dark:border-gray-900"></span>
               </span>
 
@@ -126,16 +109,10 @@ export default function NotificationDropdown() {
           <li>
             <DropdownItem
               onItemClick={closeDropdown}
-              className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
+              className="flex gap-3 rounded-2xl p-3 px-4.5 py-3 hover:bg-gray-50 dark:hover:bg-white/5"
             >
               <span className="relative z-1 block h-10 w-full max-w-10 rounded-full">
-                <Image
-                  width={40}
-                  height={40}
-                  src="/images/user/user-03.jpg"
-                  alt="User"
-                  className="w-full overflow-hidden rounded-full"
-                />
+                <UserAvatar name="Alena Franci" />
                 <span className="absolute right-0 bottom-0 z-10 h-2.5 w-full max-w-2.5 rounded-full border-[1.5px] border-white bg-success-500 dark:border-gray-900"></span>
               </span>
 
@@ -162,17 +139,11 @@ export default function NotificationDropdown() {
           <li>
             <DropdownItem
               onItemClick={closeDropdown}
-              className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
+              className="flex gap-3 rounded-2xl p-3 px-4.5 py-3 hover:bg-gray-50 dark:hover:bg-white/5"
               href="#"
             >
               <span className="relative z-1 block h-10 w-full max-w-10 rounded-full">
-                <Image
-                  width={40}
-                  height={40}
-                  src="/images/user/user-04.jpg"
-                  alt="User"
-                  className="w-full overflow-hidden rounded-full"
-                />
+                <UserAvatar name="Jocelyn Kenter" />
                 <span className="absolute right-0 bottom-0 z-10 h-2.5 w-full max-w-2.5 rounded-full border-[1.5px] border-white bg-success-500 dark:border-gray-900"></span>
               </span>
 
@@ -199,17 +170,11 @@ export default function NotificationDropdown() {
           <li>
             <DropdownItem
               onItemClick={closeDropdown}
-              className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
+              className="flex gap-3 rounded-2xl p-3 px-4.5 py-3 hover:bg-gray-50 dark:hover:bg-white/5"
               href="#"
             >
               <span className="relative z-1 block h-10 w-full max-w-10 rounded-full">
-                <Image
-                  width={40}
-                  height={40}
-                  src="/images/user/user-05.jpg"
-                  alt="User"
-                  className="w-full overflow-hidden rounded-full"
-                />
+                <UserAvatar name="Brandon Philips" />
                 <span className="absolute right-0 bottom-0 z-10 h-2.5 w-full max-w-2.5 rounded-full border-[1.5px] border-white bg-error-500 dark:border-gray-900"></span>
               </span>
 
@@ -235,17 +200,11 @@ export default function NotificationDropdown() {
 
           <li>
             <DropdownItem
-              className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
+              className="flex gap-3 rounded-2xl p-3 px-4.5 py-3 hover:bg-gray-50 dark:hover:bg-white/5"
               onItemClick={closeDropdown}
             >
               <span className="relative z-1 block h-10 w-full max-w-10 rounded-full">
-                <Image
-                  width={40}
-                  height={40}
-                  src="/images/user/user-02.jpg"
-                  alt="User"
-                  className="w-full overflow-hidden rounded-full"
-                />
+                <UserAvatar name="Terry Franci" />
                 <span className="absolute right-0 bottom-0 z-10 h-2.5 w-full max-w-2.5 rounded-full border-[1.5px] border-white bg-success-500 dark:border-gray-900"></span>
               </span>
 
@@ -272,16 +231,10 @@ export default function NotificationDropdown() {
           <li>
             <DropdownItem
               onItemClick={closeDropdown}
-              className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
+              className="flex gap-3 rounded-2xl p-3 px-4.5 py-3 hover:bg-gray-50 dark:hover:bg-white/5"
             >
               <span className="relative z-1 block h-10 w-full max-w-10 rounded-full">
-                <Image
-                  width={40}
-                  height={40}
-                  src="/images/user/user-03.jpg"
-                  alt="User"
-                  className="w-full overflow-hidden rounded-full"
-                />
+                <UserAvatar name="Alena Franci" />
                 <span className="absolute right-0 bottom-0 z-10 h-2.5 w-full max-w-2.5 rounded-full border-[1.5px] border-white bg-success-500 dark:border-gray-900"></span>
               </span>
 
@@ -308,16 +261,10 @@ export default function NotificationDropdown() {
           <li>
             <DropdownItem
               onItemClick={closeDropdown}
-              className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
+              className="flex gap-3 rounded-2xl p-3 px-4.5 py-3 hover:bg-gray-50 dark:hover:bg-white/5"
             >
               <span className="relative z-1 block h-10 w-full max-w-10 rounded-full">
-                <Image
-                  width={40}
-                  height={40}
-                  src="/images/user/user-04.jpg"
-                  alt="User"
-                  className="w-full overflow-hidden rounded-full"
-                />
+                <UserAvatar name="Jocelyn Kenter" />
                 <span className="absolute right-0 bottom-0 z-10 h-2.5 w-full max-w-2.5 rounded-full border-[1.5px] border-white bg-success-500 dark:border-gray-900"></span>
               </span>
 
@@ -344,17 +291,11 @@ export default function NotificationDropdown() {
           <li>
             <DropdownItem
               onItemClick={closeDropdown}
-              className="flex gap-3 rounded-lg border-b border-gray-100 p-3 px-4.5 py-3 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
+              className="flex gap-3 rounded-2xl p-3 px-4.5 py-3 hover:bg-gray-50 dark:hover:bg-white/5"
               href="#"
             >
               <span className="relative z-1 block h-10 w-full max-w-10 rounded-full">
-                <Image
-                  width={40}
-                  height={40}
-                  src="/images/user/user-05.jpg"
-                  alt="User"
-                  className="overflow-hidden rounded-full"
-                />
+                <UserAvatar name="Brandon Philips" />
                 <span className="absolute right-0 bottom-0 z-10 h-2.5 w-full max-w-2.5 rounded-full border-[1.5px] border-white bg-error-500 dark:border-gray-900"></span>
               </span>
 

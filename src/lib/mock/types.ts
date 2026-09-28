@@ -68,13 +68,30 @@ export interface PolicySection {
   requiresAsset: boolean;
 }
 
+export type PolicyDocumentType = "schedule" | "wording" | "endorsement" | "other";
+
+export interface PolicyDocument {
+  id: string;
+  type: PolicyDocumentType;
+  filename: string;
+  sizeBytes: number;
+  uploadedById: string;
+  uploadedAt: string;
+  /** Inline copy for viewing — only kept for small files so the mock store stays within localStorage limits. */
+  dataUrl?: string;
+}
+
 export interface Policy {
   id: string;
   clientId: string;
   policyNumber: string;
   periodStart: string;
   periodEnd: string;
+  /** Annual premium across all sections, ZAR — the denominator of the loss ratio. */
+  annualPremium?: number;
   sections: PolicySection[];
+  /** Policy schedule, wording, endorsements. */
+  documents?: PolicyDocument[];
 }
 
 export interface Asset {
@@ -123,6 +140,19 @@ export interface Message {
   createdAt: string;
 }
 
+/** A client's message to their broker from the portal's Support page. */
+export interface Enquiry {
+  id: string;
+  clientId: string;
+  authorId: string;
+  topic: "claim" | "policy" | "general";
+  subject: string;
+  body: string;
+  /** Set when the enquiry is about a claim — the message is also posted to that claim's thread. */
+  claimId?: string;
+  createdAt: string;
+}
+
 export interface CommentEntry {
   id: string;
   claimId: string;
@@ -142,10 +172,14 @@ export interface AuditEntry {
   createdAt: string;
 }
 
+/** Appointed by the insurer; the broker passes these details on to the client. */
 export interface Assessor {
   name?: string;
   company?: string;
   contact?: string;
+  email?: string;
+  /** When the broker sent these details to the client (via the claim's Communication thread). */
+  sharedWithClientAt?: string;
 }
 
 export interface Decision {
@@ -219,5 +253,6 @@ export interface MockState {
   comments: CommentEntry[];
   auditEntries: AuditEntry[];
   reports: ReportRecord[];
+  enquiries: Enquiry[];
   companySettings: CompanySettings;
 }

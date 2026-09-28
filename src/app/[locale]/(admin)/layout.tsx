@@ -12,29 +12,30 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isExpanded, isHovered, isMobileOpen } = useSidebar();
+  const { isExpanded, isMobileOpen } = useSidebar();
 
-  // Dynamic class for main content margin based on sidebar state
+  // Main column clears the floating sidebar: panel width + its 12px inset + a 12px gutter.
+  // Hover-expansion overlays the content rather than reflowing it.
   const mainContentMargin = isMobileOpen
-    ? "ml-0"
-    : isExpanded || isHovered
-    ? "lg:ml-[290px]"
-    : "lg:ml-[90px]";
+    ? "ms-0"
+    : isExpanded
+    ? "xl:ms-[280px]"
+    : "xl:ms-[104px]";
 
   return (
     <RequireAuth portal="admin">
-      <div className="min-h-screen xl:flex">
+      <div className="min-h-screen bg-monogram xl:flex">
         {/* Sidebar and Backdrop */}
         <AppSidebar />
         <Backdrop />
         {/* Main Content Area */}
         <div
-          className={`flex-1 transition-all  duration-300 ease-in-out ${mainContentMargin}`}
+          className={`min-w-0 flex-1 transition-all duration-300 ease-in-out ${mainContentMargin}`}
         >
           {/* Header */}
           <AppHeader />
           {/* Page Content */}
-          <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">{children}</div>
+          <div className="mx-auto max-w-(--breakpoint-2xl) px-4 pt-2 pb-10 md:px-6">{children}</div>
         </div>
       </div>
     </RequireAuth>

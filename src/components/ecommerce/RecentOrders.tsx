@@ -74,7 +74,7 @@ export default function RecentOrders() {
   const tCommon = useTranslations("common");
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pt-4 pb-3 sm:px-6 dark:border-gray-800 dark:bg-white/3">
+    <div className="overflow-hidden rounded-3xl shadow-card bg-white px-4 pt-4 pb-3 sm:px-6 dark:bg-gray-900">
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">

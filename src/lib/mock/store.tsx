@@ -17,10 +17,12 @@ import type {
   CompanySettings,
   Decision,
   DocumentType,
+  Enquiry,
   LodgementChannel,
   Message,
   MockState,
   Policy,
+  PolicyDocument,
   PolicySection,
   ReportRecord,
   Role,
@@ -29,7 +31,7 @@ import type {
 
 // Bump the version suffix whenever the persisted shape changes (e.g. ClaimStatus
 // enum values) — an old cached blob wouldn't match STATUS_META and would crash on read.
-const STORAGE_KEY = "aris-claims-mock-state-v2";
+const STORAGE_KEY = "aris-claims-mock-state-v3";
 const LATE_REPORT_DAYS = 30;
 
 function uid(prefix: string): string {
@@ -124,6 +126,10 @@ type Action =
     }
   | { type: "MARK_CHECKLIST_RECEIVED"; payload: { claimId: string; checklistItemId: string; actorRole: Role; actorId: string } }
   | { type: "PROCESS_TO_INSURER"; payload: { claimId: string; insurerClaimNo: string; assessor?: Assessor; actorId: string; actorRole: Role } }
+  | {
+      type: "SAVE_ASSESSOR";
+      payload: { claimId: string; assessor: Omit<Assessor, "sharedWithClientAt">; notifyClient: boolean; note?: string; actorId: string; actorRole: Role };
+    }
   | { type: "ADVANCE_ASSESSMENT"; payload: { claimId: string; actorId: string; actorRole: Role } }
   | { type: "MARK_DISPUTED"; payload: { claimId: string; actorId: string; actorRole: Role } }
   | { type: "RESOLVE_DISPUTE"; payload: { claimId: string; actorId: string; actorRole: Role } }
@@ -133,6 +139,10 @@ type Action =
   | { type: "CLOSE_CLAIM"; payload: { claimId: string; actorId: string; actorRole: Role } }
   | { type: "REOPEN_CLAIM"; payload: { claimId: string; actorId: string; actorRole: Role } }
   | { type: "ADD_MESSAGE"; payload: { claimId: string; authorId: string; authorRole: Role; body: string } }
+  | {
+      type: "SEND_ENQUIRY";
+      payload: { enquiry: Omit<Enquiry, "id" | "createdAt">; actorRole: Role };
+    }
   | { type: "ADD_COMMENT"; payload: { claimId: string; authorId: string; authorRole: Role; body: string } }
   | {
       type: "ADD_CLIENT";
@@ -151,6 +161,11 @@ type Action =
         actorRole: Role;
       };
     }
+  | {
+      type: "ATTACH_POLICY_DOCUMENT";
+      payload: { policyId: string; document: Omit<PolicyDocument, "id" | "uploadedAt">; actorId: string; actorRole: Role };
+    }
+  | { type: "REMOVE_POLICY_DOCUMENT"; payload: { policyId: string; documentId: string; actorId: string; actorRole: Role } }
   | { type: "ADD_ASSET"; payload: { asset: Omit<Asset, "id">; actorId: string; actorRole: Role } }
   | { type: "ADD_USER"; payload: { user: Omit<User, "id" | "active">; actorId: string; actorRole: Role } }
   | { type: "SET_USER_ACTIVE"; payload: { userId: string; active: boolean } }
@@ -162,7 +177,8 @@ type Action =
 function reducer(state: MockState, action: Action): MockState {
   switch (action.type) {
     case "HYDRATE":
-      return action.payload;
+      // Saved states from before enquiries existed simply start with none.
+      return { ...action.payload, enquiries: action.payload.enquiries ?? [] };
 
     case "RESET_TO_SEED":
       return buildSeedState();
@@ -331,6 +347,47 @@ function reducer(state: MockState, action: Action): MockState {
       return { ...state, claims, auditEntries };
     }
 
+    case "SAVE_ASSESSOR": {
+      const { claimId, assessor, notifyClient, note, actorId, actorRole } = action.payload;
+      const now = nowIso();
+      const target = state.claims.find((c) => c.id === claimId);
+      const sharedWithClientAt = notifyClient ? now : target?.assessor?.sharedWithClientAt;
+      const claims = state.claims.map((c) =>
+        c.id === claimId ? { ...c, assessor: { ...assessor, sharedWithClientAt }, updatedAt: now } : c,
+      );
+      const who = [assessor.name, assessor.company && `(${assessor.company})`].filter(Boolean).join(" ") || "an assessor";
+      const insurer = state.policies.flatMap((p) => p.sections).find((s) => s.id === target?.sectionId)?.insurer ?? "The insurer";
+      // The client — not the insurer — needs these details: the assessor will contact them to inspect.
+      const messages = notifyClient
+        ? [
+            ...state.messages,
+            {
+              id: uid("msg"),
+              claimId,
+              authorId: actorId,
+              authorRole: actorRole,
+              body: [
+                `${insurer} has appointed ${who} to assess this claim.`,
+                [assessor.contact && `Phone: ${assessor.contact}`, assessor.email && `Email: ${assessor.email}`].filter(Boolean).join(" · "),
+                "They'll be in touch to arrange an inspection — you're welcome to contact them directly.",
+                note?.trim(),
+              ]
+                .filter(Boolean)
+                .join("\n\n"),
+              createdAt: now,
+            },
+          ]
+        : state.messages;
+      const auditEntries = audit(state.auditEntries, {
+        claimId,
+        clientId: target?.clientId,
+        actorId,
+        actorRole,
+        action: notifyClient ? `Assessor appointed — ${who}; contact details shared with the client` : `Assessor details captured — ${who}`,
+      });
+      return { ...state, claims, messages, auditEntries };
+    }
+
     case "ADVANCE_ASSESSMENT": {
       const { claimId, actorId, actorRole } = action.payload;
       const claim = state.claims.find((c) => c.id === claimId);
@@ -478,6 +535,33 @@ function reducer(state: MockState, action: Action): MockState {
       return { ...state, messages: [...state.messages, message] };
     }
 
+    case "SEND_ENQUIRY": {
+      const { enquiry, actorRole } = action.payload;
+      const entry: Enquiry = { ...enquiry, id: uid("enq"), createdAt: nowIso() };
+      // Claim questions also land in that claim's Communication thread, where the broker works.
+      const messages = enquiry.claimId
+        ? [
+            ...state.messages,
+            {
+              id: uid("msg"),
+              claimId: enquiry.claimId,
+              authorId: enquiry.authorId,
+              authorRole: actorRole,
+              body: `${enquiry.subject}\n\n${enquiry.body}`,
+              createdAt: entry.createdAt,
+            },
+          ]
+        : state.messages;
+      const auditEntries = audit(state.auditEntries, {
+        clientId: enquiry.clientId,
+        claimId: enquiry.claimId,
+        actorId: enquiry.authorId,
+        actorRole,
+        action: `Support message sent — ${enquiry.subject}`,
+      });
+      return { ...state, enquiries: [...state.enquiries, entry], messages, auditEntries };
+    }
+
     case "ADD_COMMENT": {
       const { claimId, authorId, authorRole, body } = action.payload;
       const comment: CommentEntry = { id: uid("cmt"), claimId, authorId, authorRole, body, createdAt: nowIso() };
@@ -499,6 +583,36 @@ function reducer(state: MockState, action: Action): MockState {
       const newPolicy: Policy = { ...policy, id, sections: policy.sections.map((s) => ({ ...s, id: uid("s"), policyId: id })) };
       const auditEntries = audit(state.auditEntries, { clientId: policy.clientId, actorId, actorRole, action: "Policy added" });
       return { ...state, policies: [...state.policies, newPolicy], auditEntries };
+    }
+
+    case "ATTACH_POLICY_DOCUMENT": {
+      const { policyId, document, actorId, actorRole } = action.payload;
+      const policy = state.policies.find((p) => p.id === policyId);
+      const doc: PolicyDocument = { ...document, id: uid("pdoc"), uploadedAt: nowIso() };
+      const policies = state.policies.map((p) => (p.id === policyId ? { ...p, documents: [...(p.documents ?? []), doc] } : p));
+      const auditEntries = audit(state.auditEntries, {
+        clientId: policy?.clientId,
+        actorId,
+        actorRole,
+        action: `Policy document attached — ${policy?.policyNumber ?? ""} (${document.filename})`,
+      });
+      return { ...state, policies, auditEntries };
+    }
+
+    case "REMOVE_POLICY_DOCUMENT": {
+      const { policyId, documentId, actorId, actorRole } = action.payload;
+      const policy = state.policies.find((p) => p.id === policyId);
+      const removed = policy?.documents?.find((d) => d.id === documentId);
+      const policies = state.policies.map((p) =>
+        p.id === policyId ? { ...p, documents: (p.documents ?? []).filter((d) => d.id !== documentId) } : p,
+      );
+      const auditEntries = audit(state.auditEntries, {
+        clientId: policy?.clientId,
+        actorId,
+        actorRole,
+        action: `Policy document removed — ${policy?.policyNumber ?? ""} (${removed?.filename ?? "file"})`,
+      });
+      return { ...state, policies, auditEntries };
     }
 
     case "ADD_ASSET": {
@@ -566,6 +680,7 @@ interface DataContextValue {
   uploadDocument: (payload: Extract<Action, { type: "UPLOAD_DOCUMENT" }>["payload"]) => void;
   markChecklistReceived: (payload: Extract<Action, { type: "MARK_CHECKLIST_RECEIVED" }>["payload"]) => void;
   processToInsurer: (payload: Extract<Action, { type: "PROCESS_TO_INSURER" }>["payload"]) => void;
+  saveAssessor: (payload: Extract<Action, { type: "SAVE_ASSESSOR" }>["payload"]) => void;
   advanceAssessment: (payload: Extract<Action, { type: "ADVANCE_ASSESSMENT" }>["payload"]) => void;
   markDisputed: (payload: Extract<Action, { type: "MARK_DISPUTED" }>["payload"]) => void;
   resolveDispute: (payload: Extract<Action, { type: "RESOLVE_DISPUTE" }>["payload"]) => void;
@@ -579,6 +694,9 @@ interface DataContextValue {
   addClient: (payload: Extract<Action, { type: "ADD_CLIENT" }>["payload"]) => void;
   addPolicy: (payload: Extract<Action, { type: "ADD_POLICY" }>["payload"]) => void;
   addAsset: (payload: Extract<Action, { type: "ADD_ASSET" }>["payload"]) => void;
+  sendEnquiry: (payload: Extract<Action, { type: "SEND_ENQUIRY" }>["payload"]) => void;
+  attachPolicyDocument: (payload: Extract<Action, { type: "ATTACH_POLICY_DOCUMENT" }>["payload"]) => void;
+  removePolicyDocument: (payload: Extract<Action, { type: "REMOVE_POLICY_DOCUMENT" }>["payload"]) => void;
   addUser: (payload: Extract<Action, { type: "ADD_USER" }>["payload"]) => void;
   setUserActive: (userId: string, active: boolean) => void;
   addReport: (report: Omit<ReportRecord, "id" | "generatedAt">) => void;
@@ -600,6 +718,22 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // corrupt/unavailable storage — fall back to seed state already in memory
     }
     setReady(true);
+  }, []);
+
+  // Keep open tabs in sync — e.g. a broker working a claim in one tab and the client
+  // watching it in another. Browsers only fire "storage" in the *other* tabs, and only
+  // when the stored value actually changed, so this can't ping-pong.
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== STORAGE_KEY || !e.newValue) return;
+      try {
+        dispatch({ type: "HYDRATE", payload: JSON.parse(e.newValue) as MockState });
+      } catch {
+        // ignore a malformed write from another tab
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   useEffect(() => {
@@ -624,6 +758,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       uploadDocument: (payload) => dispatch({ type: "UPLOAD_DOCUMENT", payload }),
       markChecklistReceived: (payload) => dispatch({ type: "MARK_CHECKLIST_RECEIVED", payload }),
       processToInsurer: (payload) => dispatch({ type: "PROCESS_TO_INSURER", payload }),
+      saveAssessor: (payload) => dispatch({ type: "SAVE_ASSESSOR", payload }),
       advanceAssessment: (payload) => dispatch({ type: "ADVANCE_ASSESSMENT", payload }),
       markDisputed: (payload) => dispatch({ type: "MARK_DISPUTED", payload }),
       resolveDispute: (payload) => dispatch({ type: "RESOLVE_DISPUTE", payload }),
@@ -637,6 +772,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       addClient: (payload) => dispatch({ type: "ADD_CLIENT", payload }),
       addPolicy: (payload) => dispatch({ type: "ADD_POLICY", payload }),
       addAsset: (payload) => dispatch({ type: "ADD_ASSET", payload }),
+      sendEnquiry: (payload) => dispatch({ type: "SEND_ENQUIRY", payload }),
+      attachPolicyDocument: (payload) => dispatch({ type: "ATTACH_POLICY_DOCUMENT", payload }),
+      removePolicyDocument: (payload) => dispatch({ type: "REMOVE_POLICY_DOCUMENT", payload }),
       addUser: (payload) => dispatch({ type: "ADD_USER", payload }),
       setUserActive: (userId, active) => dispatch({ type: "SET_USER_ACTIVE", payload: { userId, active } }),
       addReport: (report) => dispatch({ type: "ADD_REPORT", payload: { report } }),

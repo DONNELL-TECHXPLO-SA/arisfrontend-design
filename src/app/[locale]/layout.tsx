@@ -7,14 +7,15 @@ import { DataProvider } from "@/lib/mock/store";
 import "flatpickr/dist/flatpickr.css";
 import { NextIntlClientProvider } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
-import { Outfit } from "next/font/google";
+import { Onest } from "next/font/google";
 import { notFound } from "next/navigation";
 import "simplebar-react/dist/simplebar.min.css";
 import "swiper/css/bundle";
 import "../globals.css";
 
-const outfit = Outfit({
+const onest = Onest({
   subsets: ["latin"],
+  variable: "--font-onest",
 });
 
 export function generateStaticParams() {
@@ -37,8 +38,8 @@ export default async function RootLayout({
   setRequestLocale(locale);
 
   return (
-    <html lang={locale} dir={isRtl(locale as Locale) ? "rtl" : "ltr"}>
-      <body className={`${outfit.className} dark:bg-gray-900`}>
+    <html lang={locale} dir={isRtl(locale as Locale) ? "rtl" : "ltr"} className={onest.variable}>
+      <body className="bg-canvas dark:bg-canvas-dark">
         <NextIntlClientProvider>
           <ThemeProvider>
             <DataProvider>

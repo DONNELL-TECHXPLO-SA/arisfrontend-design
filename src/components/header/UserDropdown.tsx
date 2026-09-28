@@ -6,11 +6,11 @@ import { usePathname, useRouter } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
 import { ChevronDownIcon } from "@/icons";
 import { cn } from "@/utils";
-import { homeForRole, useAuth } from "@/context/AuthContext";
+import { homeForRole, isInternalRole, useAuth } from "@/context/AuthContext";
 import { useData } from "@/lib/mock/store";
 import type { Role } from "@/lib/mock/types";
 import { useLocale, useTranslations } from "next-intl";
-import Image from "next/image";
+import UserAvatar from "@/components/common/UserAvatar";
 import { useRef, useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
@@ -68,6 +68,8 @@ export default function UserDropdown() {
     router.push(homeForRole(next.role));
   };
 
+  const profileHref = currentUser && !isInternalRole(currentUser.role) ? "/portal/profile" : "/profile";
+
   const handleSignOut = () => {
     logout();
     closeDropdown();
@@ -78,23 +80,21 @@ export default function UserDropdown() {
     <div className="relative">
       <button
         onClick={toggleDropdown}
-        className="dropdown-toggle flex items-center text-gray-700 dark:text-gray-400"
+        className="dropdown-toggle flex items-center gap-3 rounded-full bg-white py-1 ps-1 pe-4 text-start shadow-card transition-colors hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-white/5"
       >
-        <span className="me-3 h-11 w-11 overflow-hidden rounded-full">
-          <Image
-            width={44}
-            height={44}
-            src="/images/user/owner.png"
-            alt="User"
-          />
-        </span>
+        <UserAvatar name={currentUser?.name ?? "Account"} />
 
-        <span className="me-1 block text-theme-sm font-medium">
-          {currentUser?.name.split(" ")[0] ?? "Account"}
+        <span className="hidden min-w-0 flex-col leading-tight sm:flex">
+          <span className="truncate text-theme-sm font-medium text-ink dark:text-white">
+            {currentUser?.name ?? "Account"}
+          </span>
+          <span className="max-w-40 truncate text-theme-xs text-gray-400">
+            {currentUser?.email ?? ""}
+          </span>
         </span>
 
         <ChevronDownIcon
-          className={`size-5 text-gray-500 transition-transform duration-200 dark:text-gray-400 ${
+          className={`size-4 text-gray-400 transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
           }`}
         />
@@ -103,10 +103,10 @@ export default function UserDropdown() {
       <Dropdown
         isOpen={isOpen}
         onClose={closeDropdown}
-        className="absolute mt-4.25 flex w-65 flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg ltr:right-0 rtl:right-auto rtl:left-0 dark:border-gray-800 dark:bg-gray-dark"
+        className="absolute mt-3 flex w-72 flex-col rounded-3xl bg-white p-3 shadow-float ltr:right-0 rtl:right-auto rtl:left-0 dark:bg-gray-dark dark:ring-1 dark:ring-white/10"
       >
-        <div>
-          <span className="block text-theme-sm font-medium text-gray-700 dark:text-gray-400">
+        <div className="px-2 pt-1">
+          <span className="block text-theme-sm font-medium text-ink dark:text-white">
             {currentUser?.name ?? "Not signed in"}
           </span>
           <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
@@ -114,7 +114,7 @@ export default function UserDropdown() {
           </span>
         </div>
 
-        <div className="border-b border-gray-200 py-3 dark:border-gray-800">
+        <div className="mt-3 rounded-2xl bg-gray-50 p-3 dark:bg-white/[0.03]">
           <span className="mb-2 block text-theme-xs font-medium text-gray-400 uppercase dark:text-gray-500">
             Switch role (prototype)
           </span>
@@ -125,11 +125,11 @@ export default function UserDropdown() {
                 type="button"
                 onClick={() => handleSwitchRole(role)}
                 className={cn(
-                  "rounded-lg border px-2.5 py-1.5 text-start text-theme-xs font-medium transition-colors",
+                  "rounded-full px-3 py-1.5 text-start text-theme-xs font-medium transition-colors",
                   currentUser?.role === role ||
                     (role === "client_primary" && currentUser?.role === "client_secondary")
-                    ? "border-brand-300 bg-brand-50 text-brand-600 dark:border-brand-800 dark:bg-brand-500/15 dark:text-brand-400"
-                    : "border-gray-200 text-gray-600 hover:bg-gray-100 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-white/5",
+                    ? "bg-ink text-white dark:bg-white dark:text-ink"
+                    : "bg-white text-gray-600 ring-1 ring-gray-200 hover:text-ink dark:bg-transparent dark:text-gray-400 dark:ring-white/10 dark:hover:text-white",
                 )}
               >
                 {label}
@@ -138,13 +138,13 @@ export default function UserDropdown() {
           </div>
         </div>
 
-        <ul className="flex flex-col gap-1 border-b border-gray-200 pt-4 pb-3 dark:border-gray-800">
+        <ul className="flex flex-col gap-0.5 pt-3 pb-3">
           <li>
             <DropdownItem
               onItemClick={closeDropdown}
               tag="a"
-              href="/profile"
-              className="group flex items-center gap-3 rounded-lg px-3! py-2 text-theme-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+              href={profileHref}
+              className="group flex items-center gap-3 rounded-full px-3! py-2 text-theme-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
             >
               <svg
                 className="fill-gray-500 group-hover:fill-gray-700 dark:fill-gray-400 dark:group-hover:fill-gray-300"
@@ -168,8 +168,8 @@ export default function UserDropdown() {
             <DropdownItem
               onItemClick={closeDropdown}
               tag="a"
-              href="/profile"
-              className="group flex items-center gap-3 rounded-lg px-3! py-2 text-theme-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+              href={profileHref}
+              className="group flex items-center gap-3 rounded-full px-3! py-2 text-theme-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
             >
               <svg
                 className="fill-gray-500 group-hover:fill-gray-700 dark:fill-gray-400 dark:group-hover:fill-gray-300"
@@ -193,8 +193,8 @@ export default function UserDropdown() {
             <DropdownItem
               onItemClick={closeDropdown}
               tag="a"
-              href="/profile"
-              className="group flex items-center gap-3 rounded-lg px-3! py-2 text-theme-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+              href={profileHref}
+              className="group flex items-center gap-3 rounded-full px-3! py-2 text-theme-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
             >
               <svg
                 className="fill-gray-500 group-hover:fill-gray-700 dark:fill-gray-400 dark:group-hover:fill-gray-300"
@@ -219,7 +219,7 @@ export default function UserDropdown() {
               type="button"
               onClick={() => setIsSubDropdownOpen((prev) => !prev)}
               className={cn(
-                "group flex max-h-10 w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-theme-sm font-medium transition-colors",
+                "group flex max-h-10 w-full items-center justify-between gap-2 rounded-full px-3 py-2 text-theme-sm font-medium transition-colors",
                 isSubDropdownOpen
                   ? "bg-gray-100 text-gray-900 dark:bg-white/5 dark:text-white"
                   : "text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300",
@@ -235,7 +235,7 @@ export default function UserDropdown() {
                 >
                   <path
                     d="M12.001 2.75C17.1091 2.75 21.2501 6.89178 21.2501 11.9999C21.2501 17.108 17.1091 21.2498 12.001 21.2498M12.001 2.75C6.89289 2.75 2.75195 6.89178 2.75195 11.9999C2.75195 17.108 6.8929 21.2498 12.001 21.2498M12.001 2.75C14.2097 2.75 16.0005 6.8914 16.0005 11.9993C16.0005 17.1073 14.2098 21.2498 12.001 21.2498M12.001 2.75C9.79226 2.75 8.00195 6.89141 8.00195 11.9994C8.00195 17.1073 9.79226 21.2498 12.001 21.2498M3.24561 8.99976H20.7544M3.24561 14.9998H20.7544"
-                    stroke="#667085"
+                    stroke="currentColor"
                     strokeWidth="1.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -252,7 +252,7 @@ export default function UserDropdown() {
             </button>
 
             {isSubDropdownOpen && (
-              <div className="absolute top-11 w-62.5 rounded-2xl border border-gray-200 bg-white p-2 shadow-theme-lg md:top-0 ltr:-left-2 ltr:md:right-[calc(100%+14px)] ltr:md:left-auto rtl:-right-2 rtl:md:right-auto rtl:md:left-[calc(100%+14px)] dark:border-gray-800 dark:bg-gray-dark">
+              <div className="absolute top-11 w-62.5 rounded-2xl bg-white p-2 shadow-float md:top-0 ltr:-left-2 ltr:md:right-[calc(100%+14px)] ltr:md:left-auto rtl:-right-2 rtl:md:right-auto rtl:md:left-[calc(100%+14px)] dark:border-gray-800 dark:bg-gray-dark">
                 <ul className="flex flex-col gap-1">
                   {languages.map((language) => {
                     const isSelected = locale === language.id;
@@ -303,7 +303,7 @@ export default function UserDropdown() {
         <button
           type="button"
           onClick={handleSignOut}
-          className="group mt-3 flex w-full items-center justify-center gap-3 rounded-lg border border-gray-200 px-3 py-2 text-theme-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-700 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+          className="group flex h-10 w-full items-center justify-center gap-3 rounded-full bg-ink px-3 text-theme-sm font-medium text-white transition-colors hover:bg-gray-800 dark:bg-white dark:text-ink dark:hover:bg-gray-200"
         >
           {t("signOut")}
         </button>

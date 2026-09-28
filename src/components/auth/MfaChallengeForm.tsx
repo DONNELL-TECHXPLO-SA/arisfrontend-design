@@ -35,10 +35,10 @@ export default function MfaChallengeForm() {
   }
 
   return (
-    <div className="flex w-full flex-1 flex-col lg:w-1/2">
+    <div className="flex w-full flex-1 flex-col">
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
         <div className="mb-5 sm:mb-8">
-          <h1 className="mb-2 text-title-sm font-semibold text-gray-800 sm:text-title-md dark:text-white/90">
+          <h1 className="mb-2 text-title-sm font-medium tracking-tight text-ink sm:text-title-md dark:text-white">
             Two-factor verification
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">

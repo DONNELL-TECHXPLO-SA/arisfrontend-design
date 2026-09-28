@@ -12,7 +12,7 @@ export default function SignUpForm() {
   const [isChecked, setIsChecked] = useState(false);
 
   return (
-    <div className="no-scrollbar flex w-full flex-1 flex-col overflow-y-auto lg:w-1/2">
+    <div className="no-scrollbar flex w-full flex-1 flex-col overflow-y-auto">
       <div className="mx-auto mb-5 w-full max-w-md sm:pt-10">
         <Link
           href="/"
@@ -25,7 +25,7 @@ export default function SignUpForm() {
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
         <div>
           <div className="mb-5 sm:mb-8">
-            <h1 className="mb-2 text-title-sm font-semibold text-gray-800 sm:text-title-md dark:text-white/90">
+            <h1 className="mb-2 text-title-sm font-medium tracking-tight text-ink sm:text-title-md dark:text-white">
               Sign Up
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">

@@ -1,3 +1,7 @@
+"use client";
+
+import { useRouter } from "@/i18n/navigation";
+import { cn } from "@/utils";
 import React, { ReactNode } from "react";
 
 // Props for Table
@@ -22,6 +26,10 @@ interface TableBodyProps {
 interface TableRowProps {
   children: ReactNode; // Cells (th or td)
   className?: string; // Optional className for styling
+  /** Makes the whole row open this route — click, Enter, or Ctrl/Cmd-click for a new tab. */
+  href?: string;
+  /** Accessible name for the row link, e.g. "Open claim ARB-2026-1001". */
+  label?: string;
 }
 
 // Props for TableCell
@@ -47,8 +55,36 @@ const TableBody: React.FC<TableBodyProps> = ({ children, className }) => {
 };
 
 // TableRow Component
-const TableRow: React.FC<TableRowProps> = ({ children, className }) => {
-  return <tr className={className}>{children}</tr>;
+const INTERACTIVE = "a, button, input, select, textarea, label, [role='button']";
+
+const TableRow: React.FC<TableRowProps> = ({ children, className, href, label }) => {
+  const router = useRouter();
+  if (!href) return <tr className={className}>{children}</tr>;
+
+  // Clicks on real controls inside the row keep their own behaviour.
+  const open = (e: React.MouseEvent | React.KeyboardEvent, newTab: boolean) => {
+    if ((e.target as HTMLElement).closest(INTERACTIVE)) return;
+    if (newTab) window.open(href, "_blank", "noopener");
+    else router.push(href);
+  };
+
+  return (
+    <tr
+      className={cn(
+        "cursor-pointer transition-colors hover:bg-gray-50/80 focus-visible:bg-gray-50 focus-visible:outline-none dark:hover:bg-white/[0.02] dark:focus-visible:bg-white/[0.04]",
+        className,
+      )}
+      tabIndex={0}
+      aria-label={label}
+      onClick={(e) => open(e, e.metaKey || e.ctrlKey)}
+      onAuxClick={(e) => e.button === 1 && open(e, true)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") open(e, e.metaKey || e.ctrlKey);
+      }}
+    >
+      {children}
+    </tr>
+  );
 };
 
 // TableCell Component

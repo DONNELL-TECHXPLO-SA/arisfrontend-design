@@ -16,7 +16,7 @@ export default function ProductConfigPage() {
       <ComponentCard title="Configured Claim Forms" desc="Every claim's insurer form is determined automatically from its policy section's Insurer/UMA (FR-15) — there is no manual form picker.">
         <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-white/5">
           <Table>
-            <TableHeader className="border-b border-gray-100 dark:border-white/5">
+            <TableHeader className="bg-gray-50 dark:bg-white/[0.03]">
               <TableRow>
                 <TableCell isHeader className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">Insurer</TableCell>
                 <TableCell isHeader className="px-4 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400">Form</TableCell>

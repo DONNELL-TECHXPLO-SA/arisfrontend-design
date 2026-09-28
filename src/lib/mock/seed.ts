@@ -78,6 +78,7 @@ export const SEED_POLICIES: Policy[] = [
     id: "p-metro-1",
     clientId: "c-metro",
     policyNumber: "AB-MET-0001",
+    annualPremium: 260000,
     periodStart: daysAgo(260),
     periodEnd: daysAgo(-105),
     sections: [
@@ -89,6 +90,7 @@ export const SEED_POLICIES: Policy[] = [
     id: "p-coastal-1",
     clientId: "c-coastal",
     policyNumber: "AB-CST-0007",
+    annualPremium: 180000,
     periodStart: daysAgo(220),
     periodEnd: daysAgo(-145),
     sections: [
@@ -100,6 +102,7 @@ export const SEED_POLICIES: Policy[] = [
     id: "p-horizon-1",
     clientId: "c-horizon",
     policyNumber: "AB-HZN-0012",
+    annualPremium: 240000,
     periodStart: daysAgo(300),
     periodEnd: daysAgo(-65),
     sections: [
@@ -111,6 +114,7 @@ export const SEED_POLICIES: Policy[] = [
     id: "p-vantage-1",
     clientId: "c-vantage",
     policyNumber: "AB-VAN-0004",
+    annualPremium: 150000,
     periodStart: daysAgo(190),
     periodEnd: daysAgo(-175),
     sections: [
@@ -122,6 +126,7 @@ export const SEED_POLICIES: Policy[] = [
     id: "p-baobab-1",
     clientId: "c-baobab",
     policyNumber: "AB-BBH-0009",
+    annualPremium: 60000,
     periodStart: daysAgo(150),
     periodEnd: daysAgo(-215),
     sections: [
@@ -588,6 +593,7 @@ export function buildSeedState(): MockState {
     comments: SEED_COMMENTS,
     auditEntries: SEED_AUDIT_ENTRIES,
     reports: SEED_REPORTS,
+    enquiries: [],
     companySettings: SEED_COMPANY_SETTINGS,
   };
 }

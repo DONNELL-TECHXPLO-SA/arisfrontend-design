@@ -1,17 +1,22 @@
 "use client";
 
-import ClientClaimCard from "@/components/claims/ClientClaimCard";
+import ClaimsTable from "@/components/claims/ClaimsTable";
+import ComponentCard from "@/components/common/ComponentCard";
+import DashboardGreeting from "@/components/dashboard/DashboardGreeting";
+import StatTile from "@/components/dashboard/StatTile";
+import BrokerCard from "@/components/portal/BrokerCard";
+import TodoList from "@/components/portal/TodoList";
 import Button from "@/components/ui/button/Button";
 import { useAuth } from "@/context/AuthContext";
 import { Link } from "@/i18n/navigation";
-import { AlertIcon, CheckCircleIcon, PlusIcon } from "@/icons";
-import { clientAttentionFor } from "@/lib/mock/helpers";
+import { clientAttentionFor, findClient, findUser } from "@/lib/mock/helpers";
 import { useData, useScopedClaims } from "@/lib/mock/store";
+import { ArrowRight, FileStack, ListChecks, Plus } from "lucide-react";
 
-// Client Portal dashboard — ux-blueprint.md §13.5: reminder banner at the top (the
-// prototype's only surface for the background Notifications engine, per §1.6), then
-// the org's claims list as cards. No count tiles, no filters, no portfolio framing —
-// a client org's claim volume is low enough that a plain list is the entire dashboard.
+const TILE_ICON = "size-[18px]";
+
+// Client Portal home — same layout language as the internal dashboard, kept deliberately
+// quiet: two numbers, what needs doing, who to talk to, latest claims.
 export default function ClientDashboardPage() {
   const { currentUser } = useAuth();
   const { state } = useData();
@@ -19,66 +24,58 @@ export default function ClientDashboardPage() {
 
   if (!currentUser) return null;
 
-  const attentionClaims = claims
-    .map((claim) => ({ claim, attention: clientAttentionFor(claim, state.documents) }))
-    .filter((x): x is { claim: (typeof claims)[number]; attention: string } => !!x.attention);
-
-  const sorted = [...claims].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  const client = findClient(state, currentUser.clientId);
+  const broker = findUser(state, client?.brokerId);
+  const openClaims = claims.filter((c) => c.status !== "closed");
+  const todos = claims
+    .map((claim) => ({ claimId: claim.id, reference: claim.reference, action: clientAttentionFor(claim, state.documents) }))
+    .filter((t): t is { claimId: string; reference: string; action: string } => !!t.action);
+  const recent = [...claims].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 5);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-title-sm font-semibold text-gray-800 dark:text-white/90">My Claims</h1>
-          <p className="text-theme-sm text-gray-500 dark:text-gray-400">{currentUser.name}</p>
-        </div>
+      <DashboardGreeting firstName={currentUser.name.split(" ")[0]} subtitle={client?.name ?? ""}>
         <Link href="/portal/claims/new">
-          <Button size="sm" startIcon={<PlusIcon className="size-4" />}>
-            New Claim
+          <Button variant="brand" startIcon={<Plus className="size-4" />}>
+            Lodge a claim
           </Button>
         </Link>
+      </DashboardGreeting>
+
+      <div className="grid grid-cols-2 gap-3 sm:gap-4">
+        <StatTile
+          featured
+          href="/portal/claims"
+          label="Open claims"
+          value={openClaims.length}
+          icon={<FileStack className={TILE_ICON} strokeWidth={1.75} />}
+          caption={`of ${claims.length} lodged`}
+        />
+        <StatTile label="To do" value={todos.length} icon={<ListChecks className={TILE_ICON} strokeWidth={1.75} />} caption="need your input" />
       </div>
 
-      {claims.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-center dark:border-gray-700 dark:bg-white/3">
-          <p className="text-theme-sm font-medium text-gray-700 dark:text-gray-300">No claims yet</p>
-          <p className="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">
-            When you need to report a loss, submitting your first claim only takes a few minutes.
-          </p>
-          <Link href="/portal/claims/new" className="mt-4 inline-block">
-            <Button size="sm">Submit your first claim</Button>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <ComponentCard title="Next steps" className="lg:col-span-2">
+          <TodoList items={todos} />
+        </ComponentCard>
+        <ComponentCard title="Your broker">
+          <BrokerCard broker={broker} />
+        </ComponentCard>
+      </div>
+
+      <ComponentCard
+        title="Recent claims"
+        action={
+          <Link
+            href="/portal/claims"
+            className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3.5 py-2 text-theme-xs font-medium text-ink transition-colors hover:bg-gray-200 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+          >
+            View all <ArrowRight className="size-3.5 rtl:rotate-180" />
           </Link>
-        </div>
-      ) : attentionClaims.length > 0 ? (
-        <div className="rounded-2xl border border-warning-200 bg-warning-50 p-4 dark:border-warning-500/30 dark:bg-warning-500/10">
-          <div className="flex items-start gap-3">
-            <AlertIcon className="mt-0.5 size-5 shrink-0 text-warning-500" />
-            <div className="space-y-2">
-              <p className="text-theme-sm font-semibold text-warning-700 dark:text-warning-400">Needs your attention</p>
-              <ul className="space-y-1.5">
-                {attentionClaims.map(({ claim, attention }) => (
-                  <li key={claim.id}>
-                    <Link href={`/portal/claims/${claim.id}`} className="text-theme-sm text-warning-700 underline hover:no-underline dark:text-warning-300">
-                      {claim.reference}: {attention}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="flex items-center gap-3 rounded-2xl border border-success-200 bg-success-50 p-4 dark:border-success-500/30 dark:bg-success-500/10">
-          <CheckCircleIcon className="size-5 shrink-0 text-success-500" />
-          <p className="text-theme-sm font-medium text-success-700 dark:text-success-400">Nothing needs your attention right now.</p>
-        </div>
-      )}
-
-      <div className="space-y-3">
-        {sorted.map((claim) => (
-          <ClientClaimCard key={claim.id} claim={claim} documents={state.documents} />
-        ))}
-      </div>
+        }
+      >
+        <ClaimsTable claims={recent} showClientColumn={false} basePath="/portal/claims" emptyMessage="No claims yet." />
+      </ComponentCard>
     </div>
   );
 }

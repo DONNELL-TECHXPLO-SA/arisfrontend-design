@@ -9,24 +9,10 @@ import {
   StepperSeparator,
   StepperTitle,
 } from "@/components/ui/stepper/Stepper";
+import { OVERALL_STAGES } from "@/lib/mock/status";
 import type { Claim, ClaimStatus } from "@/lib/mock/types";
 
-interface OverallStage {
-  label: string;
-  statuses: ClaimStatus[];
-}
-
-// The overall claim journey, condensed from the 16-stage status list (process-flow.md)
-// into the milestones most users recognise. Multiple fine-grained statuses share a phase.
-const OVERALL_STAGES: OverallStage[] = [
-  { label: "Submitted", statuses: ["partially_submitted", "submitted", "documents_outstanding"] },
-  { label: "With Insurer", statuses: ["submitted_to_insurer"] },
-  { label: "Assessment", statuses: ["under_assessment", "assessment_completed"] },
-  { label: "Decision", statuses: ["awaiting_insurer_decision", "repudiated", "within_excess", "not_taken_up"] },
-  { label: "Settlement", statuses: ["settled", "awaiting_signed_aol", "awaiting_excess_invoice_and_pop", "awaiting_insurer_payment"] },
-  { label: "Closed", statuses: ["closed"] },
-];
-
+// Disputed claims resolve to the stage they were in before the dispute.
 function activeStageIndex(claim: Claim): number {
   const resolved: ClaimStatus =
     claim.status === "disputed" ? (claim.preDisputeStatus ?? "awaiting_insurer_decision") : claim.status;

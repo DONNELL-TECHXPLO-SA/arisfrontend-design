@@ -6,7 +6,7 @@
 
 @theme {
   --font-*: initial;
-  --font-outfit: Outfit, sans-serif;
+  --font-outfit: var(--font-onest), ui-sans-serif, system-ui, sans-serif;
 
   --breakpoint-*: initial;
   --breakpoint-2xsm: 375px;
@@ -38,7 +38,7 @@
   --color-current: currentColor;
   --color-transparent: transparent;
   --color-white: #ffffff;
-  --color-black: #101828;
+  --color-black: #141414;
 
   /* Aris Brokers brand red, extracted from arisbrokers.co.za (ux-blueprint.md §22.11) — brand-500 is the exact CTA red. */
   --color-brand-25: #fef3f3;
@@ -73,19 +73,29 @@
   --color-blue-light-900: #0b4a6f;
   --color-blue-light-950: #062c41;
 
-  --color-gray-25: #fcfcfd;
-  --color-gray-50: #f9fafb;
-  --color-gray-100: #f2f4f7;
-  --color-gray-200: #e4e7ec;
-  --color-gray-300: #d0d5dd;
-  --color-gray-400: #98a2b3;
-  --color-gray-500: #667085;
-  --color-gray-600: #475467;
-  --color-gray-700: #344054;
-  --color-gray-800: #1d2939;
-  --color-gray-900: #101828;
-  --color-gray-950: #0c111d;
-  --color-gray-dark: #1a2231;
+  /* Warm neutral grays — replaces the template's blue-tinted slate scale so surfaces read
+     as paper/ink rather than the stock admin-kit look. */
+  --color-gray-25: #fcfcfb;
+  --color-gray-50: #f8f8f7;
+  --color-gray-100: #f1f1ef;
+  --color-gray-200: #e8e8e5;
+  --color-gray-300: #d6d6d2;
+  --color-gray-400: #a3a39f;
+  --color-gray-500: #767672;
+  --color-gray-600: #575754;
+  --color-gray-700: #3e3e3c;
+  --color-gray-800: #272726;
+  --color-gray-900: #1a1a19;
+  --color-gray-950: #0f0f0e;
+  --color-gray-dark: #1f1f1e;
+
+  /* Charcoal — the navigation surface (sidebar, portal nav). Same in light and dark mode. */
+  --color-charcoal: #242423;
+  --color-charcoal-soft: #30302e;
+
+  /* Page canvas — cards sit on this without borders. */
+  --color-canvas: #f3f3f1;
+  --color-canvas-dark: #0f0f0e;
 
   --color-orange-25: #fffaf5;
   --color-orange-50: #fff6ed;
@@ -144,28 +154,63 @@
   --color-theme-purple-500: #7a5af8;
 
   --shadow-theme-md:
-    0px 4px 8px -2px rgba(16, 24, 40, 0.1),
-    0px 2px 4px -2px rgba(16, 24, 40, 0.06);
+    0px 4px 8px -2px rgba(20, 20, 20, 0.1),
+    0px 2px 4px -2px rgba(20, 20, 20, 0.06);
   --shadow-theme-lg:
-    0px 12px 16px -4px rgba(16, 24, 40, 0.08),
-    0px 4px 6px -2px rgba(16, 24, 40, 0.03);
+    0px 12px 16px -4px rgba(20, 20, 20, 0.08),
+    0px 4px 6px -2px rgba(20, 20, 20, 0.03);
   --shadow-theme-sm:
-    0px 1px 3px 0px rgba(16, 24, 40, 0.1),
-    0px 1px 2px 0px rgba(16, 24, 40, 0.06);
-  --shadow-theme-xs: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
+    0px 1px 3px 0px rgba(20, 20, 20, 0.1),
+    0px 1px 2px 0px rgba(20, 20, 20, 0.06);
+  --shadow-theme-xs: 0px 1px 2px 0px rgba(20, 20, 20, 0.05);
   --shadow-theme-xl:
-    0px 20px 24px -4px rgba(16, 24, 40, 0.08),
-    0px 8px 8px -4px rgba(16, 24, 40, 0.03);
-  --shadow-datepicker: -5px 0 0 #262d3c, 5px 0 0 #262d3c;
-  --shadow-focus-ring: 0px 0px 0px 4px rgba(70, 95, 255, 0.12);
+    0px 20px 24px -4px rgba(20, 20, 20, 0.08),
+    0px 8px 8px -4px rgba(20, 20, 20, 0.03);
+  --shadow-datepicker: -5px 0 0 #272726, 5px 0 0 #272726;
+  --shadow-focus-ring: 0px 0px 0px 4px rgba(211, 18, 18, 0.12);
+  --shadow-card: 0px 1px 2px 0px rgba(20, 20, 20, 0.04);
+  --shadow-brand-glow: 0px 12px 32px -12px rgba(211, 18, 18, 0.55);
+  --shadow-float:
+    0px 24px 48px -12px rgba(20, 20, 20, 0.14),
+    0px 4px 12px -4px rgba(20, 20, 20, 0.06);
   --shadow-slider-navigation:
-    0px 1px 2px 0px rgba(16, 24, 40, 0.1), 0px 1px 3px 0px rgba(16, 24, 40, 0.1);
+    0px 1px 2px 0px rgba(20, 20, 20, 0.1), 0px 1px 3px 0px rgba(20, 20, 20, 0.1);
   --shadow-tooltip:
-    0px 4px 6px -2px rgba(16, 24, 40, 0.05),
-    -8px 0px 20px 8px rgba(16, 24, 40, 0.05);
+    0px 4px 6px -2px rgba(20, 20, 20, 0.05),
+    -8px 0px 20px 8px rgba(20, 20, 20, 0.05);
 
   --drop-shadow-4xl:
     0 35px 35px rgba(0, 0, 0, 0.25), 0 45px 65px rgba(0, 0, 0, 0.15);
+
+  /* Chart entrance motion — fill-mode "backwards" so the final state is the element's own
+     styles (hover/focus transitions keep working once the entrance has played). */
+  --animate-bar-rise: bar-rise 900ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  --animate-arc-draw: arc-draw 1300ms cubic-bezier(0.65, 0, 0.35, 1) backwards;
+  --animate-fade-in: fade-in 450ms ease-out backwards;
+  --animate-stripe-draw: stripe-draw 900ms cubic-bezier(0.65, 0, 0.35, 1) backwards;
+
+  @keyframes bar-rise {
+    from {
+      height: 0;
+      min-height: 0;
+    }
+  }
+  @keyframes arc-draw {
+    from {
+      stroke-dasharray: 0 200;
+    }
+  }
+  @keyframes stripe-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
 
   --z-index-1: 1;
   --z-index-9: 9;
@@ -199,7 +244,7 @@
   }
 
   body {
-    @apply relative z-1 font-outfit font-normal bg-background text-foreground;
+    @apply relative z-1 font-outfit font-normal bg-background text-foreground antialiased;
   }
   * {
     @apply border-border outline-ring/50;
@@ -210,27 +255,27 @@
 }
 
 @utility menu-item {
-  @apply relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-theme-sm font-medium;
+  @apply relative flex w-full items-center gap-3 rounded-full px-3.5 py-2.5 text-theme-sm font-medium transition-colors duration-150;
 }
 
 @utility menu-item-active {
-  @apply bg-brand-50 text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400;
+  @apply bg-white text-ink;
 }
 
 @utility menu-item-inactive {
-  @apply text-gray-700 group-hover:text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-gray-300;
+  @apply text-gray-400 hover:bg-white/[0.07] hover:text-white;
 }
 
 @utility menu-item-icon {
-  @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400;
+  @apply text-gray-500 group-hover:text-white;
 }
 
 @utility menu-item-icon-active {
-  @apply text-brand-500 dark:text-brand-400;
+  @apply text-ink;
 }
 
 @utility menu-item-icon-inactive {
-  @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300;
+  @apply text-gray-500 group-hover:text-white;
 }
 
 @utility menu-item-arrow {
@@ -238,23 +283,23 @@
 }
 
 @utility menu-item-arrow-active {
-  @apply rotate-180 text-brand-500 dark:text-brand-400;
+  @apply rotate-180 text-white;
 }
 
 @utility menu-item-arrow-inactive {
-  @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300;
+  @apply text-gray-500 group-hover:text-white;
 }
 
 @utility menu-dropdown-item {
-  @apply relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium;
+  @apply relative flex items-center gap-3 rounded-full px-3.5 py-2 text-sm font-medium transition-colors duration-150;
 }
 
 @utility menu-dropdown-item-active {
-  @apply bg-brand-50 text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400;
+  @apply text-white before:absolute before:-start-3 before:top-1/2 before:size-1.5 before:-translate-y-1/2 before:rounded-full before:bg-brand-500;
 }
 
 @utility menu-dropdown-item-inactive {
-  @apply text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5;
+  @apply text-gray-400 hover:text-white;
 }
 
 @utility menu-dropdown-badge {
@@ -279,6 +324,27 @@
 
 @utility menu-dropdown-badge-pro-inactive {
   @apply bg-brand-50 group-hover:bg-brand-100 dark:bg-brand-500/15 dark:group-hover:bg-brand-500/20;
+}
+
+/* Diagonal hatch — marks the "not yet / inactive" part of a chart (pending gauge track,
+   inactive bars, their legend swatches). The SVG gauge pattern reads the same vars. */
+@utility bg-hatch {
+  background-color: var(--hatch-bg);
+  background-image: repeating-linear-gradient(135deg, var(--hatch-line) 0 2px, transparent 2px 8px);
+}
+
+/* Monogram wallpaper — the Africa mark from the logo, tiled faintly on the page canvas.
+   Fixed so it reads as a surface, not content; cards sit on top and stay clean white. */
+@utility bg-monogram {
+  background-color: var(--color-canvas);
+  background-image: url("/images/pattern/aris-monogram.png");
+  background-size: 160px 160px;
+  background-attachment: fixed;
+
+  &:where(.dark, .dark *) {
+    background-color: var(--color-canvas-dark);
+    background-image: url("/images/pattern/aris-monogram-dark.png");
+  }
 }
 
 @utility no-scrollbar {
@@ -306,7 +372,7 @@
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #344054;
+  background-color: #3e3e3c;
 }
 
 @layer utilities {
@@ -506,8 +572,8 @@
 .task {
   border-radius: 0.75rem;
   box-shadow:
-    0px 1px 3px 0px rgba(16, 24, 40, 0.1),
-    0px 1px 2px 0px rgba(16, 24, 40, 0.06);
+    0px 1px 3px 0px rgba(20, 20, 20, 0.1),
+    0px 1px 2px 0px rgba(20, 20, 20, 0.06);
   opacity: 0.8;
   cursor: grabbing; /* Changes the cursor to indicate dragging */
 }
@@ -634,8 +700,8 @@ span.flatpickr-weekday,
 
 .flatpickr-day.inRange {
   box-shadow:
-    -5px 0 0 #f9fafb,
-    5px 0 0 #f9fafb !important;
+    -5px 0 0 #f8f8f7,
+    5px 0 0 #f8f8f7 !important;
   @apply dark:!shadow-datepicker;
 }
 
@@ -679,14 +745,13 @@ span.flatpickr-weekday,
 .flatpickr-day.selected.nextMonthDay,
 .flatpickr-day.startRange.nextMonthDay,
 .flatpickr-day.endRange.nextMonthDay {
-  background: #465fff;
   @apply !border-brand-500 !bg-brand-500 hover:!border-brand-500 hover:!bg-brand-500;
 }
 
 .flatpickr-day.selected.startRange + .endRange:not(:nth-child(7n + 1)),
 .flatpickr-day.startRange.startRange + .endRange:not(:nth-child(7n + 1)),
 .flatpickr-day.endRange.startRange + .endRange:not(:nth-child(7n + 1)) {
-  box-shadow: -10px 0 0 #465fff;
+  box-shadow: -10px 0 0 #d31212;
 }
 
 .flatpickr-months .flatpickr-prev-month svg,
@@ -960,7 +1025,7 @@ pre[class*="language-"].line-numbers {
   height: 20px;
   border-radius: 9999px;
   background: #ffffff;
-  border: 2px solid #465fff;
+  border: 2px solid #d31212;
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
@@ -969,7 +1034,7 @@ pre[class*="language-"].line-numbers {
   height: 20px;
   border-radius: 9999px;
   background: #ffffff;
-  border: 2px solid #465fff;
+  border: 2px solid #d31212;
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
@@ -977,7 +1042,9 @@ pre[class*="language-"].line-numbers {
 /* FullCalendar Style Overrides */
 :root {
   --fc-classic-border: var(--color-gray-200);
-  --background: oklch(1 0 0);
+  --hatch-bg: #f1f1ef;
+  --hatch-line: #d6d6d2;
+  --background: var(--color-canvas);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -1000,7 +1067,7 @@ pre[class*="language-"].line-numbers {
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
+  --radius: 0.75rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -1073,7 +1140,7 @@ pre[class*="language-"].line-numbers {
   .dark .custom-calendar .fc-multimonth [role="grid"] [id*="month-"],
   .dark .custom-calendar.fc-multimonth [role="grid"] [id*="month-"],
   .dark .custom-calendar [role="grid"].fc-multimonth [id*="month-"] {
-    background-color: #111827 !important;
+    background-color: #1a1a19 !important;
   }
 
   /* Day Header (SUN MON TUE...) sticks directly below the Month Title */
@@ -1103,7 +1170,7 @@ pre[class*="language-"].line-numbers {
     position: sticky !important;
     top: 92px !important;
     z-index: 9 !important;
-    background-color: #f9fafb !important;
+    background-color: #f8f8f7 !important;
   }
   .dark
     .custom-calendar:has(.fc-multimonth)
@@ -1143,7 +1210,7 @@ pre[class*="language-"].line-numbers {
     [role="grid"].fc-multimonth
     .fc-multimonth-day-header-row,
   .dark .custom-calendar [role="grid"].fc-multimonth .fc-daygrid-header {
-    background-color: #111827 !important;
+    background-color: #1a1a19 !important;
   }
 
   /* Reset FullCalendar margin math to avoid whitespace gaps */
@@ -1228,7 +1295,9 @@ pre[class*="language-"].line-numbers {
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
+  --hatch-bg: rgba(255, 255, 255, 0.04);
+  --hatch-line: rgba(255, 255, 255, 0.16);
+  --background: var(--color-canvas-dark);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
   --card-foreground: oklch(0.985 0 0);
@@ -1253,7 +1322,7 @@ pre[class*="language-"].line-numbers {
   --chart-5: oklch(0.269 0 0);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary: oklch(0.985 0 0);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);

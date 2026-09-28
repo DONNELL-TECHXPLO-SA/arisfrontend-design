@@ -22,26 +22,30 @@ interface TabsProps {
 // (omit `href`, handle `onChange`).
 const Tabs: React.FC<TabsProps> = ({ tabs, active, onChange, className = "" }) => {
   return (
-    <div className={cn("no-scrollbar overflow-x-auto border-b border-gray-200 dark:border-gray-800", className)}>
-      <nav className="flex min-w-max gap-1">
+    <div className={cn("no-scrollbar overflow-x-auto", className)}>
+      <nav className="inline-flex min-w-max gap-1 rounded-full bg-white p-1.5 shadow-card dark:bg-gray-900">
         {tabs.map((tab) => {
           const isActive = tab.key === active;
           const content = (
             <>
               {tab.label}
               {typeof tab.badge === "number" && tab.badge > 0 && (
-                <span className="rounded-full bg-gray-100 px-1.5 py-0.5 text-theme-xs font-medium text-gray-600 dark:bg-white/10 dark:text-gray-300">
+                <span
+                  className={cn(
+                    "rounded-full px-1.5 py-0.5 text-theme-xs font-medium",
+                    isActive ? "bg-brand-500 text-white" : "bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300",
+                  )}
+                >
                   {tab.badge}
                 </span>
               )}
-              {isActive && <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-brand-500" />}
             </>
           );
           const className = cn(
-            "relative flex items-center gap-1.5 px-3.5 py-3 text-theme-sm font-medium transition-colors",
+            "relative flex items-center gap-1.5 rounded-full px-4 py-2 text-theme-sm font-medium transition-colors duration-150",
             isActive
-              ? "text-brand-600 dark:text-brand-400"
-              : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300",
+              ? "bg-ink text-white dark:bg-white dark:text-ink"
+              : "text-gray-500 hover:bg-gray-100 hover:text-ink dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white",
           );
           return tab.href ? (
             <Link key={tab.key} href={tab.href} className={className}>

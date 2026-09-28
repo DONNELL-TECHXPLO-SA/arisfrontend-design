@@ -30,6 +30,7 @@ export { default as DeFlagIcon } from "./flag-de.svg";
 export { default as EsFlagIcon } from "./flag-es.svg";
 export { default as SaFlagIcon } from "./flag-sa.svg";
 export { default as UsFlagIcon } from "./flag-us.svg";
+export { default as ZaFlagIcon } from "./flag-za.svg";
 export { default as FolderIcon } from "./folder.svg";
 export { default as GridIcon } from "./grid.svg";
 export { default as GroupIcon } from "./group.svg";

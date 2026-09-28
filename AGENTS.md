@@ -69,6 +69,14 @@ src/
 ## Styling rules
 
 - Tailwind CSS **v4** — the theme lives in `src/app/globals.css` under `@theme`; there is no `tailwind.config`.
+- **Aris visual language** (replaces the stock template look — keep new UI consistent with it):
+  - Surfaces: pages sit on `bg-canvas` / `dark:bg-canvas-dark`; cards are borderless `rounded-3xl bg-white shadow-card dark:bg-gray-900` (use `ComponentCard`). No outline borders on cards.
+  - Controls are pills (`rounded-full`). Primary action = ink (`Button` default, `bg-ink`); Aris red (`brand-500`, `Button variant="brand"`) is reserved for the one featured element per view (e.g. the featured `StatTile`, alerts, active dots).
+  - Active nav/tab state = solid ink pill (white pill in dark mode), not a tinted brand background.
+  - Status = neutral chip with a coloured dot (`Badge` light variant). Font is Onest (`font-outfit` token name kept for compatibility).
+  - Shell icons use `lucide-react` (`strokeWidth={1.75}`); `@/icons` remains for legacy components.
+  - Both portals share one shell: `AppSidebar` + `AppHeader` (the Client Portal gets its own nav items from `getNavItems` for client roles). Don't reintroduce a separate client top/bottom nav.
+  - The Africa mark as a large graphic = `components/common/AfricaStripes` (vector, traced from the logo) — never scale up the PNG.
 - Always use theme tokens instead of hardcoded values:
   - Colors: `brand`, `gray`, `blue-light`, `orange`, `success`, `error`, `warning` scales (`25`–`950`), plus `theme-pink-500` / `theme-purple-500`.
   - Typography: `font-outfit`, `text-theme-xs/sm/xl`, `text-title-sm/md/lg/xl/2xl`.
