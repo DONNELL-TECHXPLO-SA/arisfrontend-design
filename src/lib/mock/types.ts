@@ -233,12 +233,18 @@ export interface ReportRecord {
   generatedAt: string;
 }
 
+// The 5 client-facing stages the User Portal shows (UC-03) — each groups several of the
+// 16 internal ClaimStatus values (see CLIENT_STAGE_OF in clientStatus.ts).
+export type ClientStage = "received" | "documents_outstanding" | "with_insurer" | "decision_received" | "finalised";
+
 export interface CompanySettings {
   companyName: string;
   fspLicence: string;
   disclaimerText: string;
   vatRate: number;
   defaultReminderIntervalDays: number;
+  /** Administrator-configurable wording for the client-facing stages; defaults apply when unset. */
+  clientStageLabels?: Record<ClientStage, string>;
 }
 
 export interface MockState {
