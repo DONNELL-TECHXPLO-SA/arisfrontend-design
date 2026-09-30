@@ -1,81 +1,238 @@
 "use client";
 
-import ClaimsTable from "@/components/claims/ClaimsTable";
-import ComponentCard from "@/components/common/ComponentCard";
-import DashboardGreeting from "@/components/dashboard/DashboardGreeting";
-import StatTile from "@/components/dashboard/StatTile";
-import BrokerCard from "@/components/portal/BrokerCard";
-import TodoList from "@/components/portal/TodoList";
+import ClientClaimCard from "@/components/claims/ClientClaimCard";
+import StatCard from "@/components/common/StatCard";
 import Button from "@/components/ui/button/Button";
 import { useAuth } from "@/context/AuthContext";
 import { Link } from "@/i18n/navigation";
-import { clientAttentionFor, findClient, findUser } from "@/lib/mock/helpers";
+import {
+  AlertIcon,
+  CheckCircleIcon,
+  ListIcon,
+  PlusIcon,
+  TimeIcon,
+} from "@/icons";
+import { clientStageNote, clientStageOf } from "@/lib/mock/clientStatus";
+import { findClient } from "@/lib/mock/helpers";
 import { useData, useScopedClaims } from "@/lib/mock/store";
-import { ArrowRight, FileStack, ListChecks, Plus } from "lucide-react";
+import type { Claim, MockState } from "@/lib/mock/types";
+import { cn } from "@/utils";
+import { useState } from "react";
 
-const TILE_ICON = "size-[18px]";
+// The claim the client most needs to act on — opened by default so the full stage view
+// is visible on arrival. Outstanding documents win; then any other claim waiting on the
+// client; otherwise nothing is expanded.
+function mostActionableClaim(
+  state: MockState,
+  claims: Claim[],
+): Claim | undefined {
+  const blocking = claims.filter((c) => clientStageNote(state, c).blocking);
+  return (
+    blocking.find((c) => clientStageOf(c.status) === "documents_outstanding") ??
+    blocking[0]
+  );
+}
 
-// Client Portal home — same layout language as the internal dashboard, kept deliberately
-// quiet: two numbers, what needs doing, who to talk to, latest claims.
+type Filter = "all" | "action" | "open" | "finalised";
+
+function greeting(): string {
+  const h = new Date().getHours();
+  return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+}
+
+// User Portal home — UC-03 Track Claim Status. The org's claims, most recently lodged
+// first, each showing the client-facing status the Broker last set. Only claims linked
+// to the signed-in user's own organisation are ever listed (useScopedClaims).
 export default function ClientDashboardPage() {
   const { currentUser } = useAuth();
   const { state } = useData();
-  const claims = useScopedClaims(currentUser?.role ?? "client_primary", currentUser?.id ?? "", currentUser?.clientId);
+  const claims = useScopedClaims(
+    currentUser?.role ?? "client_primary",
+    currentUser?.id ?? "",
+    currentUser?.clientId,
+  );
+  // null until the user toggles a card — until then the most actionable claim stays open.
+  const [expanded, setExpanded] = useState<Set<string> | null>(null);
+  const [filter, setFilter] = useState<Filter>("all");
 
   if (!currentUser) return null;
 
-  const client = findClient(state, currentUser.clientId);
-  const broker = findUser(state, client?.brokerId);
-  const openClaims = claims.filter((c) => c.status !== "closed");
-  const todos = claims
-    .map((claim) => ({ claimId: claim.id, reference: claim.reference, action: clientAttentionFor(claim, state.documents) }))
-    .filter((t): t is { claimId: string; reference: string; action: string } => !!t.action);
-  const recent = [...claims].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 5);
+  const org = findClient(state, currentUser.clientId);
+  const sorted = [...claims].sort((a, b) =>
+    b.createdAt.localeCompare(a.createdAt),
+  );
+  const needsAction = sorted.filter((c) => clientStageNote(state, c).blocking);
+  const finalised = sorted.filter(
+    (c) => clientStageOf(c.status) === "finalised",
+  );
+  const open = sorted.filter((c) => clientStageOf(c.status) !== "finalised");
+  const withInsurer = sorted.filter(
+    (c) => clientStageOf(c.status) === "with_insurer",
+  );
+  const visible =
+    filter === "action"
+      ? needsAction
+      : filter === "open"
+        ? open
+        : filter === "finalised"
+          ? finalised
+          : sorted;
+  const filters: { key: Filter; label: string; count: number }[] = [
+    { key: "all", label: "All claims", count: sorted.length },
+    { key: "action", label: "Needs action", count: needsAction.length },
+    { key: "open", label: "In progress", count: open.length },
+    { key: "finalised", label: "Finalised", count: finalised.length },
+  ];
+  const defaultOpen = mostActionableClaim(state, sorted);
+  const openIds = expanded ?? new Set(defaultOpen ? [defaultOpen.id] : []);
+
+  const toggle = (id: string) => {
+    const next = new Set(openIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setExpanded(next);
+  };
 
   return (
     <div className="space-y-6">
-      <DashboardGreeting firstName={currentUser.name.split(" ")[0]} subtitle={client?.name ?? ""}>
-        <Link href="/portal/claims/new">
-          <Button variant="brand" startIcon={<Plus className="size-4" />}>
-            Lodge a claim
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-theme-sm text-gray-500 dark:text-gray-400">
+            {greeting()}, {currentUser.name.split(" ")[0]}
+          </p>
+          <h1 className="mt-0.5 text-title-sm font-semibold tracking-tight text-gray-900 dark:text-white/90">
+            My Claims
+          </h1>
+          <p className="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">
+            {org?.name} · {claims.length}{" "}
+            {claims.length === 1 ? "claim" : "claims"} on file
+          </p>
+        </div>
+        <Link href="/portal/claims/new" className="sm:hidden">
+          <Button size="sm" startIcon={<PlusIcon className="size-4" />}>
+            Lodge a Claim
           </Button>
         </Link>
-      </DashboardGreeting>
-
-      <div className="grid grid-cols-2 gap-3 sm:gap-4">
-        <StatTile
-          featured
-          href="/portal/claims"
-          label="Open claims"
-          value={openClaims.length}
-          icon={<FileStack className={TILE_ICON} strokeWidth={1.75} />}
-          caption={`of ${claims.length} lodged`}
-        />
-        <StatTile label="To do" value={todos.length} icon={<ListChecks className={TILE_ICON} strokeWidth={1.75} />} caption="need your input" />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <ComponentCard title="Next steps" className="lg:col-span-2">
-          <TodoList items={todos} />
-        </ComponentCard>
-        <ComponentCard title="Your broker">
-          <BrokerCard broker={broker} />
-        </ComponentCard>
-      </div>
+      {claims.length > 0 && (
+        <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+          <StatCard
+            label="Needs your action"
+            value={needsAction.length}
+            hint={
+              needsAction.length
+                ? "Documents or signatures outstanding"
+                : "Nothing outstanding"
+            }
+            icon={<AlertIcon />}
+            tone={needsAction.length ? "attention" : "default"}
+          />
+          <StatCard
+            label="In progress"
+            value={open.length}
+            hint="Received, with your broker or insurer"
+            icon={<ListIcon />}
+          />
+          <StatCard
+            label="With insurer"
+            value={withInsurer.length}
+            hint="Being assessed or decided"
+            icon={<TimeIcon />}
+          />
+          <StatCard
+            label="Finalised"
+            value={finalised.length}
+            hint="Closed and view-only"
+            icon={<CheckCircleIcon />}
+          />
+        </div>
+      )}
 
-      <ComponentCard
-        title="Recent claims"
-        action={
-          <Link
-            href="/portal/claims"
-            className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3.5 py-2 text-theme-xs font-medium text-ink transition-colors hover:bg-gray-200 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
-          >
-            View all <ArrowRight className="size-3.5 rtl:rotate-180" />
+      {claims.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-8 text-center dark:border-gray-700 dark:bg-white/3">
+          <p className="text-theme-sm font-medium text-gray-700 dark:text-gray-300">
+            No claims yet
+          </p>
+          <p className="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">
+            When you need to report a loss, lodging your first claim only takes
+            a few minutes.
+          </p>
+          <Link href="/portal/claims/new" className="mt-4 inline-block">
+            <Button size="sm">Lodge your first claim</Button>
           </Link>
-        }
-      >
-        <ClaimsTable claims={recent} showClientColumn={false} basePath="/portal/claims" emptyMessage="No claims yet." />
-      </ComponentCard>
+        </div>
+      ) : (
+        <section className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="no-scrollbar max-w-full overflow-x-auto">
+              <div
+                role="tablist"
+                aria-label="Filter claims"
+                className="inline-flex rounded-lg border border-gray-200 bg-white p-1 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900"
+              >
+                {filters.map((f) => (
+                  <button
+                    key={f.key}
+                    type="button"
+                    role="tab"
+                    aria-selected={filter === f.key}
+                    onClick={() => setFilter(f.key)}
+                    className={cn(
+                      "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-theme-sm font-medium whitespace-nowrap transition-colors",
+                      filter === f.key
+                        ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900"
+                        : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white",
+                    )}
+                  >
+                    {f.label}
+                    <span
+                      className={cn(
+                        "rounded px-1.5 text-theme-xs tabular-nums",
+                        filter === f.key
+                          ? "bg-white/15 dark:bg-gray-900/10"
+                          : f.key === "action" && f.count > 0
+                            ? "bg-brand-50 text-brand-600 dark:bg-brand-500/15"
+                            : "bg-gray-100 text-gray-500 dark:bg-white/5",
+                      )}
+                    >
+                      {f.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="hidden text-theme-xs text-gray-500 sm:block dark:text-gray-400">
+              Most recently lodged first
+            </p>
+          </div>
+          {visible.length === 0 && (
+            <p className="rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center text-theme-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900">
+              {filter === "action"
+                ? "Nothing needs your action right now."
+                : "No claims in this view."}
+            </p>
+          )}
+          {visible.map((claim) => (
+            <ClientClaimCard
+              key={claim.id}
+              claim={claim}
+              expanded={openIds.has(claim.id)}
+              onToggle={() => toggle(claim.id)}
+            />
+          ))}
+        </section>
+      )}
+
+      <p className="text-center text-theme-xs text-gray-400 dark:text-gray-500">
+        Statuses are updated by your broker as your claim progresses.{" "}
+        <Link
+          href="/portal/contact"
+          className="font-medium text-gray-600 underline underline-offset-2 hover:text-gray-800 dark:text-gray-300"
+        >
+          Questions? Contact your broker
+        </Link>
+      </p>
     </div>
   );
 }
