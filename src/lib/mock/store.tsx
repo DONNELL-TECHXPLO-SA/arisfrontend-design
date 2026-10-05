@@ -12,6 +12,7 @@ import type {
   ClientOrg,
   Claim,
   ClaimDocument,
+  ClaimFinancials,
   ClaimStatus,
   CommentEntry,
   CompanySettings,
@@ -133,7 +134,10 @@ type Action =
   | { type: "ADVANCE_ASSESSMENT"; payload: { claimId: string; actorId: string; actorRole: Role } }
   | { type: "MARK_DISPUTED"; payload: { claimId: string; actorId: string; actorRole: Role } }
   | { type: "RESOLVE_DISPUTE"; payload: { claimId: string; actorId: string; actorRole: Role } }
-  | { type: "UPDATE_FINANCIALS"; payload: { claimId: string; grossAmount: number; actorId: string; actorRole: Role } }
+  | {
+      type: "UPDATE_FINANCIALS";
+      payload: { claimId: string; grossAmount?: number; financials: ClaimFinancials; actorId: string; actorRole: Role };
+    }
   | { type: "UPDATE_LATE_MOTIVATION"; payload: { claimId: string; motivation: string; actorId: string; actorRole: Role } }
   | { type: "RECORD_DECISION"; payload: { claimId: string; decision: Omit<Decision, "decidedAt" | "decidedById">; actorId: string; actorRole: Role } }
   | { type: "CLOSE_CLAIM"; payload: { claimId: string; actorId: string; actorRole: Role } }
@@ -425,8 +429,8 @@ function reducer(state: MockState, action: Action): MockState {
     }
 
     case "UPDATE_FINANCIALS": {
-      const { claimId, grossAmount, actorId, actorRole } = action.payload;
-      const claims = state.claims.map((c) => (c.id === claimId ? { ...c, grossAmount, updatedAt: nowIso() } : c));
+      const { claimId, grossAmount, financials, actorId, actorRole } = action.payload;
+      const claims = state.claims.map((c) => (c.id === claimId ? { ...c, grossAmount, financials, updatedAt: nowIso() } : c));
       const claim = claims.find((c) => c.id === claimId);
       const auditEntries = audit(state.auditEntries, {
         claimId,

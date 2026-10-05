@@ -20,6 +20,10 @@ interface PayoutGaugeProps {
   pending: { label: string; value: number };
   centerValue: string;
   centerLabel: string;
+  /** Show each legend row's share of the total (off when values aren't comparable shares, e.g. stages). */
+  showPercent?: boolean;
+  /** Leave zero-value rows out of the legend (the arc already omits them). */
+  hideEmpty?: boolean;
 }
 
 // Geometry: a semicircle of radius R centred at (CX, CY), drawn left → right over the top.
@@ -32,7 +36,7 @@ const ARC = `M ${CX - R} ${CY} A ${R} ${R} 0 0 1 ${CX + R} ${CY}`;
 // Each solid segment is an arc from 0 → its cumulative end (pathLength-normalised to 100),
 // painted last-to-first so earlier stages sit on top. A slightly wider surface-coloured
 // arc under each one gives the 2px separating gap at its rounded end.
-export default function PayoutGauge({ segments, pending, centerValue, centerLabel }: PayoutGaugeProps) {
+export default function PayoutGauge({ segments, pending, centerValue, centerLabel, showPercent = true, hideEmpty = false }: PayoutGaugeProps) {
   const patternId = useId();
   const [hovered, setHovered] = useState<string | null>(null);
   const total = segments.reduce((s, x) => s + x.value, 0) + pending.value;
@@ -47,12 +51,12 @@ export default function PayoutGauge({ segments, pending, centerValue, centerLabe
   const rows = [
     ...segments.map((s) => ({ key: s.key, label: s.label, value: s.value, swatch: s.swatchClass })),
     { key: "pending", label: pending.label, value: pending.value, swatch: "bg-hatch ring-1 ring-gray-300 ring-inset dark:ring-white/15" },
-  ];
+  ].filter((r) => !hideEmpty || r.value > 0);
   const active = rows.find((r) => r.key === hovered);
 
   return (
     <div>
-      <div className="relative mx-auto max-w-80">
+      <div className="relative mx-auto max-w-80 flat:max-w-60">
         <svg viewBox="0 0 240 132" className="w-full overflow-visible" role="img" aria-label={`${centerValue} ${centerLabel}`}>
           <defs>
             <pattern id={patternId} width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -110,21 +114,21 @@ export default function PayoutGauge({ segments, pending, centerValue, centerLabe
           className="pointer-events-none absolute inset-x-0 bottom-0 text-center motion-safe:animate-fade-in"
           style={{ animationDelay: "900ms" }}
         >
-          <p className="text-title-md leading-none font-medium tracking-tight text-ink dark:text-white">
+          <p className="text-title-md leading-none font-medium tracking-tight text-ink flat:text-3xl flat:font-semibold dark:text-white">
             {active ? active.value : centerValue}
           </p>
           <p className="mt-2 text-theme-xs text-gray-500 dark:text-gray-400">{active ? active.label : centerLabel}</p>
         </div>
       </div>
 
-      <ul className="mt-6 space-y-2.5">
+      <ul className="mt-6 space-y-2.5 flat:mt-5 flat:space-y-1">
         {rows.map((r) => (
           <li
             key={r.key}
             onPointerEnter={() => setHovered(r.key)}
             onPointerLeave={() => setHovered(null)}
             className={cn(
-              "flex items-center justify-between gap-3 rounded-full px-3 py-1.5 transition-colors",
+              "flex items-center justify-between gap-3 rounded-full px-3 py-1.5 transition-colors flat:rounded-md flat:px-2",
               hovered === r.key ? "bg-gray-100 dark:bg-white/5" : "",
             )}
           >
@@ -134,7 +138,7 @@ export default function PayoutGauge({ segments, pending, centerValue, centerLabe
             </span>
             <span className="text-theme-sm font-semibold text-ink tabular-nums dark:text-white">
               {r.value}
-              <span className="ms-1.5 font-normal text-gray-400">{total ? Math.round((r.value / total) * 100) : 0}%</span>
+              {showPercent && <span className="ms-1.5 font-normal text-gray-400">{total ? Math.round((r.value / total) * 100) : 0}%</span>}
             </span>
           </li>
         ))}

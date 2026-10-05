@@ -63,7 +63,7 @@ export default function ClientSupportPage() {
 
   return (
     <div className="space-y-6">
-      <PortalPageHeader title="Support" />
+      <PortalPageHeader title="Support" subtitle={`Messages go to ${broker?.name ?? "your broker"} at Aris Brokers.`} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <ComponentCard title="New message" className="lg:col-span-2">
@@ -78,13 +78,13 @@ export default function ClientSupportPage() {
                     aria-pressed={topic === value}
                     onClick={() => setTopic(value)}
                     className={cn(
-                      "flex items-center gap-3 rounded-2xl p-4 text-start transition-colors",
+                      "flex items-center gap-3 rounded-2xl border px-4 py-3.5 text-start transition-colors",
                       topic === value
-                        ? "bg-ink text-white dark:bg-white dark:text-ink"
-                        : "bg-gray-50 text-ink hover:bg-gray-100 dark:bg-white/[0.03] dark:text-white dark:hover:bg-white/5",
+                        ? "border-brand-500 bg-brand-50/60 text-ink ring-1 ring-brand-500 dark:bg-brand-500/10 dark:text-white"
+                        : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 dark:border-white/10 dark:bg-transparent dark:text-gray-300 dark:hover:border-white/20",
                     )}
                   >
-                    <Icon className="size-5 shrink-0" strokeWidth={1.75} />
+                    <Icon className={cn("size-4.5 shrink-0", topic === value ? "text-brand-600 dark:text-brand-400" : "text-gray-400")} strokeWidth={1.75} />
                     <span className="text-theme-sm font-medium">{label}</span>
                   </button>
                 ))}
@@ -152,13 +152,13 @@ export default function ClientSupportPage() {
         </div>
       </div>
 
-      <ComponentCard title="Sent messages" desc={history.length ? undefined : "Nothing sent yet."}>
+      <ComponentCard title="Sent messages" desc={history.length ? undefined : "Nothing sent yet."} flush={history.length > 0}>
         {history.length > 0 && (
-          <ul className="space-y-2.5">
+          <ul className="divide-y divide-gray-100 dark:divide-white/5">
             {history.map((e) => {
               const claim = e.claimId ? state.claims.find((c) => c.id === e.claimId) : undefined;
               return (
-                <li key={e.id} className="rounded-2xl bg-gray-50 p-4 dark:bg-white/[0.03]">
+                <li key={e.id} className="px-5 py-4 sm:px-6">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="text-theme-sm font-medium text-ink dark:text-white">{e.subject}</p>
                     <span className="text-theme-xs text-gray-400">{formatDateTime(e.createdAt)}</span>

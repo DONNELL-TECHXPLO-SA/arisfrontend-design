@@ -16,7 +16,7 @@ export default function FormSectionProgress({ sections, currentIndex, onJump }: 
   const current = sections[currentIndex];
 
   return (
-    <div className="rounded-3xl bg-white p-5 shadow-card sm:p-6 dark:bg-gray-900">
+    <div className="rounded-3xl bg-white p-5 shadow-card sm:p-6 flat:rounded-xl flat:border flat:border-gray-200 flat:p-5 flat:shadow-theme-xs dark:bg-gray-900 dark:flat:border-white/10">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
           <p className="text-theme-xs font-medium tracking-[0.12em] text-gray-400 uppercase">

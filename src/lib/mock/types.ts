@@ -172,6 +172,13 @@ export interface AuditEntry {
   createdAt: string;
 }
 
+export interface ClaimFinancials {
+  excess?: number;
+  vat?: number;
+  netAmount?: number;
+  notes?: string;
+}
+
 /** Appointed by the insurer; the broker passes these details on to the client. */
 export interface Assessor {
   name?: string;
@@ -212,6 +219,8 @@ export interface Claim {
   assessor?: Assessor;
   decision?: Decision;
   grossAmount?: number;
+  /** Broker-entered figures — typed in as given by the insurer/assessor, never calculated. */
+  financials?: ClaimFinancials;
   /** Status to restore on "Resolve Dispute" — set when a claim is marked Disputed. */
   preDisputeStatus?: ClaimStatus;
   claimFormValues?: Record<string, string>;

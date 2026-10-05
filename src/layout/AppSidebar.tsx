@@ -14,6 +14,7 @@ import {
   History,
   LayoutGrid,
   MessageCircle,
+  UserRound,
   PanelLeftClose,
   PanelLeftOpen,
   Settings2,
@@ -37,25 +38,35 @@ const ICON = "size-[18px] shrink-0";
 // Settings and Users & Access never render for a Broker (not greyed out — absent).
 // Manager sees everything Broker sees (plus unscoped data, applied at the query level,
 // not the nav level) but not those two Administrator-only items.
-function getNavItems(role: Role): { main: NavItem[]; admin: NavItem[] } {
-  // Client Portal — same shell as the Admin Portal, but only the client's own areas.
+type NavGroup = { label: string; items: NavItem[] };
+
+function getNavItems(role: Role): NavGroup[] {
+  // Client Portal — same shell as the Admin Portal, grouped by what the client is doing.
   if (!isInternalRole(role)) {
-    return {
-      main: [
-        { icon: <LayoutGrid className={ICON} strokeWidth={1.75} />, key: "portalHome", path: "/portal" },
-        {
-          icon: <FileStack className={ICON} strokeWidth={1.75} />,
-          key: "portalClaims",
-          subItems: [
-            { key: "portalClaimsAll", path: "/portal/claims" },
-            { key: "portalClaimsNew", path: "/portal/claims/new" },
-          ],
-        },
-        { icon: <MessageCircle className={ICON} strokeWidth={1.75} />, key: "portalSupport", path: "/portal/support" },
-        { icon: <ChartColumn className={ICON} strokeWidth={1.75} />, key: "portalReports", path: "/portal/reports" },
-      ],
-      admin: [],
-    };
+    return [
+      { label: "Overview", items: [{ icon: <LayoutGrid className={ICON} strokeWidth={1.75} />, key: "portalHome", path: "/portal" }] },
+      {
+        label: "Claims",
+        items: [
+          {
+            icon: <FileStack className={ICON} strokeWidth={1.75} />,
+            key: "portalClaims",
+            subItems: [
+              { key: "portalClaimsAll", path: "/portal/claims" },
+              { key: "portalClaimsNew", path: "/portal/claims/new" },
+            ],
+          },
+        ],
+      },
+      {
+        label: "Service",
+        items: [
+          { icon: <MessageCircle className={ICON} strokeWidth={1.75} />, key: "portalSupport", path: "/portal/support" },
+          { icon: <ChartColumn className={ICON} strokeWidth={1.75} />, key: "portalReports", path: "/portal/reports" },
+        ],
+      },
+      { label: "Account", items: [{ icon: <UserRound className={ICON} strokeWidth={1.75} />, key: "portalProfile", path: "/portal/profile" }] },
+    ];
   }
 
   const main: NavItem[] = [
@@ -89,7 +100,7 @@ function getNavItems(role: Role): { main: NavItem[]; admin: NavItem[] } {
         ]
       : [];
 
-  return { main, admin };
+  return [{ label: "Menu", items: main }, ...(admin.length ? [{ label: "Administration", items: admin }] : [])];
 }
 
 const AppSidebar: React.FC = () => {
@@ -98,14 +109,14 @@ const AppSidebar: React.FC = () => {
   const t = useTranslations("sidebar");
   const { currentUser } = useAuth();
   const role = currentUser?.role ?? "broker";
-  const { main, admin } = useMemo(() => getNavItems(role), [role]);
+  const groups = useMemo(() => getNavItems(role), [role]);
   const isClient = !isInternalRole(role);
   const canLodge = isClient || role === "broker" || role === "administrator";
   const lodgeHref = isClient ? "/portal/claims/new" : "/claims/new";
 
   const isOpen = isExpanded || isHovered || isMobileOpen;
   const isActive = useCallback((path: string) => path === pathname, [pathname]);
-  const routeOwner = [...main, ...admin].find((nav) => nav.subItems?.some((s) => isActive(s.path)))?.key ?? null;
+  const routeOwner = groups.flatMap((g) => g.items).find((nav) => nav.subItems?.some((s) => isActive(s.path)))?.key ?? null;
 
   // Open whichever group owns the current route; re-sync (during render) when the route changes.
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(routeOwner);
@@ -213,23 +224,19 @@ const AppSidebar: React.FC = () => {
       </div>
 
       <nav className="no-scrollbar -mx-1 flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-1 pt-2">
-        <div className={cn(!isOpen && "xl:flex xl:flex-col xl:items-center")}>
-          {groupLabel(t("groups.menu"))}
-          {renderItems(main)}
-        </div>
-        {admin.length > 0 && (
-          <div className={cn(!isOpen && "xl:flex xl:flex-col xl:items-center")}>
-            {groupLabel("Administration")}
-            {renderItems(admin)}
+        {groups.map((group) => (
+          <div key={group.label} className={cn(!isOpen && "xl:flex xl:flex-col xl:items-center")}>
+            {groupLabel(group.label === "Menu" ? t("groups.menu") : group.label)}
+            {renderItems(group.items)}
           </div>
-        )}
+        ))}
       </nav>
 
       <div className="shrink-0 space-y-3 py-4">
         {canLodge &&
           (isOpen ? (
             <div className="relative overflow-hidden rounded-3xl bg-charcoal-soft p-5 text-white ring-1 ring-white/5 [@media(max-height:720px)]:hidden">
-              <span className="pointer-events-none absolute -end-10 -top-10 size-32 rounded-full bg-brand-500/90 blur-2xl" />
+              {!isClient && <span className="pointer-events-none absolute -end-10 -top-10 size-32 rounded-full bg-brand-500/90 blur-2xl" />}
               <span className="relative flex size-9 items-center justify-center rounded-full bg-white/10">
                 <FilePlus2 className="size-4.5" strokeWidth={1.75} />
               </span>

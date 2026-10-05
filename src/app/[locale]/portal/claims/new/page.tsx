@@ -1,5 +1,6 @@
 "use client";
 
+import PortalPageHeader from "@/components/portal/PortalPageHeader";
 import Select from "@/components/form/Select";
 import Input from "@/components/form/input/InputField";
 import TextArea from "@/components/form/input/TextArea";
@@ -93,11 +94,11 @@ export default function ClientNewClaimPage() {
   }
 
   return (
-    <div>
-      <h1 className="mb-6 text-title-sm font-semibold text-gray-800 dark:text-white/90">New Claim</h1>
-      <StepProgress steps={steps} currentIndex={stepIndex} onStepClick={setStepIndex} className="mb-8" />
+    <div className="space-y-6">
+      <PortalPageHeader title="Lodge a claim" subtitle="Tell us what happened. It takes a few minutes — your broker takes it from there." />
+      <StepProgress steps={steps} currentIndex={stepIndex} onStepClick={setStepIndex} />
 
-      <div className="rounded-3xl shadow-card bg-white p-5 dark:bg-gray-900">
+      <div className="rounded-3xl bg-white p-5 shadow-card sm:p-6 dark:bg-gray-900">
         {currentKey === "policy" && (
           <div className="space-y-5">
             <div>

@@ -23,7 +23,7 @@ interface TabsProps {
 const Tabs: React.FC<TabsProps> = ({ tabs, active, onChange, className = "" }) => {
   return (
     <div className={cn("no-scrollbar overflow-x-auto", className)}>
-      <nav className="inline-flex min-w-max gap-1 rounded-full bg-white p-1.5 shadow-card dark:bg-gray-900">
+      <nav className="inline-flex min-w-max gap-1 rounded-full bg-white p-1.5 shadow-card dark:bg-gray-900 flat:flex flat:w-full flat:gap-6 flat:rounded-none flat:border-b flat:border-gray-200 flat:bg-transparent flat:p-0 flat:shadow-none dark:flat:border-white/10 dark:flat:bg-transparent">
         {tabs.map((tab) => {
           const isActive = tab.key === active;
           const content = (
@@ -42,10 +42,10 @@ const Tabs: React.FC<TabsProps> = ({ tabs, active, onChange, className = "" }) =
             </>
           );
           const className = cn(
-            "relative flex items-center gap-1.5 rounded-full px-4 py-2 text-theme-sm font-medium transition-colors duration-150",
+            "relative flex items-center gap-1.5 rounded-full px-4 py-2 text-theme-sm font-medium transition-colors duration-150 flat:-mb-px flat:rounded-none flat:border-b-2 flat:border-transparent flat:px-0 flat:py-3",
             isActive
-              ? "bg-ink text-white dark:bg-white dark:text-ink"
-              : "text-gray-500 hover:bg-gray-100 hover:text-ink dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white",
+              ? "bg-ink text-white dark:bg-white dark:text-ink flat:border-brand-500 flat:bg-transparent flat:text-ink dark:flat:bg-transparent dark:flat:text-white"
+              : "text-gray-500 hover:bg-gray-100 hover:text-ink dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white flat:hover:bg-transparent flat:hover:border-gray-300 dark:flat:hover:bg-transparent",
           );
           return tab.href ? (
             <Link key={tab.key} href={tab.href} className={className}>

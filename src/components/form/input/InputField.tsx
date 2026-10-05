@@ -29,7 +29,7 @@ const Input: FC<InputProps> = ({
   hint,
   ...props
 }) => {
-  let inputClasses = ` h-11 w-full rounded-xl border appearance-none ps-4 pe-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-hidden focus:ring-4  dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 ${className}`;
+  let inputClasses = ` h-11 w-full rounded-xl border flat:h-10 flat:rounded-lg appearance-none ps-4 pe-4 py-2.5 text-sm placeholder:text-gray-400 focus:outline-hidden focus:ring-4  dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 ${className}`;
 
   if (disabled) {
     inputClasses += ` text-gray-500 border-gray-300 opacity-40 bg-gray-100 cursor-not-allowed dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 opacity-40`;

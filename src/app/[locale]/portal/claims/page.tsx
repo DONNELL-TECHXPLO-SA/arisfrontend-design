@@ -1,8 +1,8 @@
 "use client";
 
 import ClaimsSearchInput from "@/components/claims/ClaimsSearchInput";
-import ClaimsTable from "@/components/claims/ClaimsTable";
 import { applyClaimFilters, EMPTY_FILTERS } from "@/components/claims/claimFilters";
+import ClaimAccordionList from "@/components/portal/ClaimAccordionList";
 import Button from "@/components/ui/button/Button";
 import { useAuth } from "@/context/AuthContext";
 import { Link } from "@/i18n/navigation";
@@ -69,10 +69,9 @@ function ClientClaimsList({ initialQuery }: { initialQuery: string }) {
         ))}
       </div>
 
-      <ClaimsTable
+      <ClaimAccordionList
         claims={results}
-        showClientColumn={false}
-        basePath="/portal/claims"
+        state={state}
         emptyMessage={claims.length === 0 ? "No claims yet." : "No claims match your search."}
       />
     </div>

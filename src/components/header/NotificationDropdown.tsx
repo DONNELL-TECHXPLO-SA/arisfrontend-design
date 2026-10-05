@@ -29,7 +29,7 @@ export default function NotificationDropdown() {
   return (
     <div className="relative">
       <button
-        className="dropdown-toggle relative flex size-10 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-ink dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
+        className="dropdown-toggle relative flex size-10 items-center justify-center rounded-full flat:size-9 flat:rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-ink dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
         aria-label={t("title")}
         onClick={handleClick}
       >

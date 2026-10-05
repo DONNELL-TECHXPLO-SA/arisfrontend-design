@@ -22,7 +22,8 @@ const SWITCHER_ROLES: { role: Role; label: string }[] = [
   { role: "client_primary", label: "Client Contact" },
 ];
 
-export default function UserDropdown() {
+/** "plain" — no capsule; for a flat header bar (Client Portal). */
+export default function UserDropdown({ variant = "capsule" }: { variant?: "capsule" | "plain" }) {
   const t = useTranslations("userDropdown");
   const locale = useLocale() as Locale;
   const router = useRouter();
@@ -80,9 +81,14 @@ export default function UserDropdown() {
     <div className="relative">
       <button
         onClick={toggleDropdown}
-        className="dropdown-toggle flex items-center gap-3 rounded-full bg-white py-1 ps-1 pe-4 text-start shadow-card transition-colors hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-white/5"
+        className={cn(
+          "dropdown-toggle flex items-center gap-3 text-start transition-colors",
+          variant === "capsule"
+            ? "rounded-full bg-white py-1 ps-1 pe-4 shadow-card hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-white/5"
+            : "rounded-lg py-1 ps-1 pe-2 hover:bg-gray-100 dark:hover:bg-white/5",
+        )}
       >
-        <UserAvatar name={currentUser?.name ?? "Account"} />
+        <UserAvatar name={currentUser?.name ?? "Account"} size={variant === "plain" ? "sm" : "md"} />
 
         <span className="hidden min-w-0 flex-col leading-tight sm:flex">
           <span className="truncate text-theme-sm font-medium text-ink dark:text-white">

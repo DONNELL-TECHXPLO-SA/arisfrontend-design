@@ -22,7 +22,7 @@ const ROLE_LABEL: Record<Role, string> = {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl bg-gray-50 px-4 py-3 dark:bg-white/[0.03]">
+    <div className="rounded-2xl bg-gray-50 px-4 py-3 flat:rounded-lg dark:bg-white/[0.03]">
       <dt className="text-theme-xs text-gray-400">{label}</dt>
       <dd className="mt-1 text-theme-sm font-medium text-ink dark:text-white">{children}</dd>
     </div>
@@ -43,11 +43,11 @@ export default function ProfileOverview({ portal }: { portal: "admin" | "client"
 
   return (
     <div className="space-y-6">
-      <div className="rounded-3xl bg-white p-6 shadow-card dark:bg-gray-900">
+      <div className="rounded-3xl bg-white p-6 shadow-card flat:rounded-xl flat:border flat:border-gray-200 flat:p-5 flat:shadow-theme-xs dark:bg-gray-900 dark:flat:border-white/10">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
           <UserAvatar name={currentUser.name} size="xl" />
           <div className="min-w-0">
-            <h2 className="text-title-sm font-medium tracking-tight text-ink dark:text-white">{currentUser.name}</h2>
+            <h2 className="text-title-sm font-medium tracking-tight text-ink flat:text-xl flat:font-semibold dark:text-white">{currentUser.name}</h2>
             <p className="mt-1 text-theme-sm text-gray-500 dark:text-gray-400">
               {ROLE_LABEL[currentUser.role]} · {organisation}
             </p>
