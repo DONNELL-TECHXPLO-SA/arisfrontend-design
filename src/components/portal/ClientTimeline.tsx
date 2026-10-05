@@ -14,7 +14,7 @@ export default function ClientTimeline({ events }: { events: ClientEvent[] }) {
             aria-hidden
             className={cn(
               "absolute -start-6 top-1 size-3.5 rounded-full border-2 border-white dark:border-gray-900",
-              i === 0 ? "bg-brand-500" : e.milestone ? "bg-ink dark:bg-white" : "bg-gray-300 dark:bg-gray-600",
+              i === 0 || e.milestone ? "bg-ink dark:bg-white" : "bg-gray-300 dark:bg-gray-600",
             )}
           />
           <p className={cn("text-theme-sm text-ink dark:text-white", (i === 0 || e.milestone) && "font-medium")}>{e.title}</p>

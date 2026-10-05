@@ -3,6 +3,9 @@
 @import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
+/* "flat" — the enterprise surface system used inside the Client Portal (the layout root
+   carries .ui-flat). Shared components add flat: overrides; elsewhere they render as-is. */
+@custom-variant flat (&:where(.ui-flat, .ui-flat *));
 
 @theme {
   --font-*: initial;

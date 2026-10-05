@@ -75,7 +75,8 @@ src/
   - Active nav/tab state = solid ink pill (white pill in dark mode), not a tinted brand background.
   - Status = neutral chip with a coloured dot (`Badge` light variant). Font is Onest (`font-outfit` token name kept for compatibility).
   - Shell icons use `lucide-react` (`strokeWidth={1.75}`); `@/icons` remains for legacy components.
-  - Both portals share one shell: `AppSidebar` + `AppHeader` (the Client Portal gets its own nav items from `getNavItems` for client roles). Don't reintroduce a separate client top/bottom nav.
+  - Both portals share one shell: `AppSidebar` (collapsible, grouped nav per role — clients get Overview / Claims / Service / Account) + `AppHeader`, on the `bg-monogram` canvas. Don't reintroduce a separate client shell. Portal page titles use `components/portal/PortalPageHeader`; the client dashboard opens with `components/portal/DashboardHero`.
+  - A `flat:` variant (enterprise bordered surfaces, active under an ancestor `.ui-flat`) exists on shared components but is currently unused — nothing carries `.ui-flat`.
   - The Africa mark as a large graphic = `components/common/AfricaStripes` (vector, traced from the logo) — never scale up the PNG.
 - Always use theme tokens instead of hardcoded values:
   - Colors: `brand`, `gray`, `blue-light`, `orange`, `success`, `error`, `warning` scales (`25`–`950`), plus `theme-pink-500` / `theme-purple-500`.

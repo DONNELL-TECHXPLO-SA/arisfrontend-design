@@ -1,5 +1,6 @@
 "use client";
 
+import PortalPageHeader from "@/components/portal/PortalPageHeader";
 import ComponentCard from "@/components/common/ComponentCard";
 import Select from "@/components/form/Select";
 import Label from "@/components/form/Label";
@@ -25,7 +26,7 @@ export default function ClientReportsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-title-sm font-semibold text-gray-800 dark:text-white/90">Reports</h1>
+      <PortalPageHeader title="Reports" subtitle="Claims history and performance reports for your organisation." />
       <ComponentCard title="Generate Report" desc={`For ${client?.name}, current underwriting year.`}>
         <div className="space-y-4">
           <div>

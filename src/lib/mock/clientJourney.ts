@@ -212,3 +212,38 @@ export function clientTimeline(entries: AuditEntry[], claim: Claim, state: MockS
   }
   return out;
 }
+
+// ---- Progress summary (client dashboard ring) ----------------------------------------
+
+export interface ClaimProgress {
+  /** 0-based index into OVERALL_STAGES. */
+  index: number;
+  label: string;
+  /** Nothing further will happen — closed, or ended at the decision. */
+  finished: boolean;
+}
+
+export function claimProgress(claim: Claim): ClaimProgress {
+  const effective: ClaimStatus = claim.status === "disputed" ? (claim.preDisputeStatus ?? "awaiting_insurer_decision") : claim.status;
+  const finished = claim.status === "closed" || NO_SETTLEMENT.includes(claim.status);
+  const index = finished ? OVERALL_STAGES.length - 1 : stageIndexOf(effective);
+  return { index, label: CLIENT_STAGE_LABELS[OVERALL_STAGES[index].key], finished };
+}
+
+export const CLIENT_STAGE_COUNT = OVERALL_STAGES.length;
+
+// ---- Client-facing status wording ------------------------------------------------------
+
+const FINAL_LABELS: Partial<Record<ClaimStatus, string>> = {
+  closed: "Closed",
+  repudiated: "Declined",
+  within_excess: "Within excess",
+  not_taken_up: "Withdrawn",
+};
+
+/** The status a client sees — the tracker's stage name, or the plain final outcome. */
+export function clientStatusLabel(claim: Claim): { label: string; finished: boolean } {
+  const final = FINAL_LABELS[claim.status];
+  if (final) return { label: final, finished: true };
+  return { label: claimProgress(claim).label, finished: false };
+}

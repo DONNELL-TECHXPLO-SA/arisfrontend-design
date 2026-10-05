@@ -33,7 +33,7 @@ const Select: React.FC<SelectProps> = ({
   return (
     <div className="relative">
       <select
-        className={`h-11 w-full appearance-none rounded-xl border border-gray-200 bg-white px-4 py-2.5 pe-11 text-sm placeholder:text-gray-400 hover:border-gray-300 focus:border-ink focus:ring-4 focus:ring-ink/5 focus:outline-hidden dark:border-white/10 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-white/40 ${
+        className={`h-11 w-full appearance-none rounded-xl border flat:h-10 flat:rounded-lg border-gray-200 bg-white px-4 py-2.5 pe-11 text-sm placeholder:text-gray-400 hover:border-gray-300 focus:border-ink focus:ring-4 focus:ring-ink/5 focus:outline-hidden dark:border-white/10 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-white/40 ${
           selectedValue
             ? "text-gray-800 dark:text-white/90"
             : "text-gray-400 dark:text-gray-400"

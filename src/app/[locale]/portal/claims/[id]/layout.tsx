@@ -1,8 +1,7 @@
 "use client";
 
 import NotFoundPanel from "@/components/common/NotFoundPanel";
-import StatusBadge from "@/components/claims/StatusBadge";
-import ClaimJourney from "@/components/portal/ClaimJourney";
+import ClientStatusBadge from "@/components/portal/ClientStatusBadge";
 import { clientJourney } from "@/lib/mock/clientJourney";
 import Tabs from "@/components/ui/tabs/Tabs";
 import { Link, usePathname } from "@/i18n/navigation";
@@ -27,9 +26,10 @@ export default function ClientClaimDetailLayout({ children }: { children: React.
   const section = findSection(state, claim.sectionId);
   const base = `/portal/claims/${claim.id}`;
   const showSettlement = claim.decision?.outcome === "settled";
+  const journey = clientJourney(claim, state);
 
   const tabs = [
-    { key: "status", label: "Status & Timeline", href: base },
+    { key: "status", label: "Updates", href: base },
     { key: "claim-form", label: "Claim Form", href: `${base}/claim-form` },
     { key: "documents", label: "Documents", href: `${base}/documents` },
     { key: "communication", label: "Communication", href: `${base}/communication` },
@@ -49,35 +49,42 @@ export default function ClientClaimDetailLayout({ children }: { children: React.
         <span className="text-gray-600 dark:text-gray-300">{claim.reference}</span>
       </nav>
 
-      <div className="mb-5 rounded-3xl bg-white p-5 shadow-card sm:p-6 dark:bg-gray-900">
-        <div className="flex flex-wrap items-start justify-between gap-4">
+      {/* Slim header — which claim and its status. The full stage view lives on My claims. */}
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2.5">
             <h1 className="text-title-sm font-medium tracking-tight text-ink dark:text-white">{claim.reference}</h1>
+            <ClientStatusBadge claim={claim} />
             {claim.lateReported && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-theme-xs font-medium text-brand-600 dark:bg-brand-500/15 dark:text-brand-400">
+              <span className="inline-flex items-center gap-1 rounded-full bg-warning-50 px-2.5 py-1 text-theme-xs font-medium text-warning-700 dark:bg-warning-500/15 dark:text-warning-400">
                 <AlertIcon className="size-3" /> Late reported
               </span>
             )}
           </div>
-          <StatusBadge status={claim.status} />
-        </div>
-        <dl className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-          {[
-            { label: "Claim type", value: claim.claimType },
-            { label: "Insurer", value: section?.insurer ?? "—" },
-            { label: "Date of loss", value: formatDate(claim.dateOfLoss) },
-          ].map((f) => (
-            <div key={f.label} className="rounded-2xl bg-gray-50 px-4 py-3 dark:bg-white/[0.03]">
-              <dt className="text-theme-xs text-gray-400">{f.label}</dt>
-              <dd className="mt-1 truncate text-theme-sm font-medium text-ink dark:text-white">{f.value}</dd>
-            </div>
-          ))}
-        </dl>
-
-        <div className="mt-6 border-t border-gray-100 pt-6 dark:border-white/5">
-          <ClaimJourney embedded journey={clientJourney(claim, state)} claimBase={base} />
+          <p className="mt-1.5 text-theme-sm text-gray-500 dark:text-gray-400">
+            {claim.claimType} · {section?.insurer ?? "—"} · Loss on {formatDate(claim.dateOfLoss)}
+          </p>
         </div>
       </div>
+
+      {/* Only when the client has something to do — so nobody opens a claim without knowing the next step. */}
+      {journey.waiting.party === "you" && journey.waiting.action && (
+        <div className="mb-5 flex flex-col gap-3 rounded-2xl bg-brand-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between dark:bg-brand-500/10">
+          <p className="flex items-center gap-2.5 text-theme-sm text-ink dark:text-white">
+            <span aria-hidden className="size-2 shrink-0 rounded-full bg-brand-500" />
+            <span>
+              <span className="font-semibold text-brand-600 dark:text-brand-400">Your next step: </span>
+              {journey.waiting.text}
+            </span>
+          </p>
+          <Link
+            href={`${base}/${journey.waiting.action.tab}`}
+            className="inline-flex h-9 shrink-0 items-center justify-center rounded-full bg-ink px-4 text-theme-xs font-medium text-white transition-colors hover:bg-gray-800 dark:bg-white dark:text-ink"
+          >
+            {journey.waiting.action.label}
+          </Link>
+        </div>
+      )}
 
       <Tabs tabs={tabs} active={active} className="mb-6" />
 

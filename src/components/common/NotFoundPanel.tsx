@@ -9,7 +9,7 @@ import Image from "next/image";
  */
 export default function NotFoundPanel({ backHref, backLabel = "Back to Claims" }: { backHref: string; backLabel?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-3xl shadow-card bg-white px-6 py-16 text-center dark:bg-gray-900">
+    <div className="flex flex-col items-center justify-center rounded-3xl shadow-card bg-white px-6 py-16 flat:rounded-xl flat:border flat:border-gray-200 flat:shadow-theme-xs dark:flat:border-white/10 text-center dark:bg-gray-900">
       <Image src="/images/error/404.svg" alt="" className="dark:hidden" width={220} height={72} />
       <Image src="/images/error/404-dark.svg" alt="" className="hidden dark:block" width={220} height={72} />
       <p className="mt-6 text-theme-sm text-gray-500 dark:text-gray-400">

@@ -234,7 +234,10 @@ export default function ClaimFormWizard({ slug, claim, portal }: { slug: string;
 
   return (
     <div>
-      <Script src="/vendor/pdf-lib.min.js" strategy="afterInteractive" onLoad={() => setPdfReady(true)} />
+      {/* onReady, not onLoad: Next fires onLoad only the first time a script loads, so a form
+          opened after pdf-lib is already on the page (another tab, the settlement page) would
+          wait forever. onReady fires on every mount once the script is available. */}
+      <Script src="/vendor/pdf-lib.min.js" strategy="afterInteractive" onReady={() => setPdfReady(true)} />
 
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>

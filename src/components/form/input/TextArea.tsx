@@ -27,7 +27,7 @@ const TextArea: React.FC<TextareaProps> = ({
     }
   };
 
-  let textareaClasses = `w-full rounded-xl border px-4 py-2.5 text-sm focus:outline-hidden ${className}`;
+  let textareaClasses = `w-full rounded-xl border flat:rounded-lg px-4 py-2.5 text-sm focus:outline-hidden ${className}`;
 
   if (disabled) {
     textareaClasses += ` bg-gray-100 opacity-50 text-gray-500 border-gray-300 cursor-not-allowed dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700`;

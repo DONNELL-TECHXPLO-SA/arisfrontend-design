@@ -24,8 +24,8 @@ const Button: React.FC<ButtonProps> = ({
   disabled = false,
 }) => {
   const sizeClasses = {
-    sm: "h-10 px-4.5 text-sm",
-    md: "h-12 px-6 text-sm",
+    sm: "h-10 px-4.5 text-sm flat:h-9 flat:px-3.5",
+    md: "h-12 px-6 text-sm flat:h-10 flat:px-4",
   };
 
   const variantClasses = {
@@ -34,13 +34,13 @@ const Button: React.FC<ButtonProps> = ({
     brand:
       "bg-brand-500 text-white hover:bg-brand-600 disabled:bg-brand-300",
     outline:
-      "bg-white text-ink ring-1 ring-inset ring-gray-200 hover:bg-gray-50 dark:bg-white/5 dark:text-gray-200 dark:ring-white/10 dark:hover:bg-white/10",
+      "bg-white text-ink ring-1 ring-inset ring-gray-200 flat:ring-gray-300 flat:shadow-theme-xs hover:bg-gray-50 dark:bg-white/5 dark:text-gray-200 dark:ring-white/10 dark:hover:bg-white/10",
   };
 
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors duration-150",
+        "inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors duration-150 flat:rounded-lg",
         sizeClasses[size],
         variantClasses[variant],
         disabled && "cursor-not-allowed opacity-50",
