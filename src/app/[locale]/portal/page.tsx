@@ -28,7 +28,14 @@ const viewAll = (
 export default function ClientDashboardPage() {
   const { currentUser } = useAuth();
   const { state } = useData();
-  const claims = useScopedClaims(currentUser?.role ?? "client_primary", currentUser?.id ?? "", currentUser?.clientId);
+  const claims = useScopedClaims(
+    currentUser?.role ?? "client_primary",
+    currentUser?.id ?? "",
+    currentUser?.clientId,
+  );
+  // null until the user toggles a card — until then the most actionable claim stays open.
+  const [expanded, setExpanded] = useState<Set<string> | null>(null);
+  const [filter, setFilter] = useState<Filter>("all");
 
   if (!currentUser) return null;
 
